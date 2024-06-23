@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MakeWheel by Hol</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="info">
+      <h2>MakeWheel</h2>
+      <div>Point 1: X: <input type="number" id="point1X" min="-50" max="50" value="50" step="1" /> Y: <input type="number" id="point1Y" min="-50" max="50" value="0" step="1" /> Z: <input type="number" id="point1Z" min="-50" max="50" value="0" step="1" /></div>
+      <div>Point 2: X: <input type="number" id="point2X" min="-50" max="50" value="-50" step="1" /> Y: <input type="number" id="point2Y" min="-50" max="50" value="0" step="1" /> Z: <input type="number" id="point2Z" min="-50" max="50" value="0" step="1" /></div>
+      <div>Repetitions: <input type="number" id="repetitions" min="1" max="20" value="4" step="1" /></div>
+      <div>Segments: <input type="number" id="segments" min="0" max="20" value="0" step="1" /></div>
+      <div>
+        <input type="checkbox" id="makePlaceFormat" />
+        <label for="makePlaceFormat">MakePlace Format</label>
+      </div>
+      <div>
+        <label for="planeAngle">Plane Angle: </label>
+        <input type="number" id="planeAngle" min="0" max="360" value="0" step="1" />
+      </div>
+      <button id="generateBtn">Generate</button>
+      <button id="resetCamera">Reset Camera</button>
+    </div>
+    <div id="coordinates"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

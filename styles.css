@@ -1,0 +1,73 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+#info {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: white;
+  font-family: monospace;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+#coordinates {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: white;
+  font-family: monospace;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  border-radius: 5px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.copy-btn {
+  cursor: pointer;
+  margin-left: 5px;
+  color: #00ff00;
+}
+
+input[type="number"] {
+  width: 50px;
+}
+
+.coordinate-item {
+  cursor: pointer;
+}
+
+.coordinate-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#resetCamera {
+  margin-top: 10px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+#info div {
+  margin-bottom: 5px;
+}
