@@ -6,6 +6,8 @@ let allPoints = [];
 let planeVisualization;
 let useMakePlaceFormat = false;
 let planeAngle = 0;
+let uploadedDesign = null;
+let processedDesign = null;
 
 function init() {
   scene = new THREE.Scene();
@@ -31,6 +33,9 @@ function init() {
     planeAngle = parseFloat(this.value);
     generatePoints();
   });
+  document.getElementById("jsonFileInput").addEventListener("change", handleFileUpload);
+  document.getElementById("processDesignBtn").addEventListener("click", processDesign);
+  document.getElementById("downloadBtn").addEventListener("click", downloadProcessedJSON);
 
   createPlaneVisualization();
   generatePoints();
@@ -38,6 +43,96 @@ function init() {
   window.addEventListener("resize", onWindowResize, false);
 
   setupMouseControls();
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        uploadedDesign = JSON.parse(e.target.result);
+        console.log("Design JSON loaded successfully");
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+        alert("Error parsing JSON file. Please make sure it's a valid JSON.");
+      }
+    };
+    reader.readAsText(file);
+  }
+}
+
+function processDesign() {
+  if (!uploadedDesign) {
+    alert("Please upload a design JSON file first.");
+    return;
+  }
+
+  if (allPoints.length < 1) {
+    alert("Please generate points first.");
+    return;
+  }
+
+  processedDesign = {
+    ...uploadedDesign,
+    attachments: [],
+  };
+
+  // Process for all generated points
+  allPoints.forEach((point, index) => {
+    const newAttachment = {
+      ...uploadedDesign,
+      transform: {
+        location: [point.position.x * 100, point.position.z * 100, point.position.y * 100],
+        rotation: uploadedDesign.transform.rotation,
+        scale: uploadedDesign.transform.scale,
+      },
+    };
+    delete newAttachment.attachments;
+    processedDesign.attachments.push(newAttachment);
+
+    // Process attachments for this point
+    processAttachments(uploadedDesign, newAttachment, point);
+  });
+
+  console.log("Design processed successfully");
+  document.getElementById("downloadBtn").style.display = "block";
+}
+
+function processAttachments(originalDesign, targetDesign, referencePoint) {
+  if (originalDesign.attachments) {
+    if (!targetDesign.attachments) {
+      targetDesign.attachments = [];
+    }
+    originalDesign.attachments.forEach((attachment) => {
+      try {
+        const newAttachment = { ...attachment };
+        const relativePosition = [attachment.transform.location[0] - originalDesign.transform.location[0], attachment.transform.location[1] - originalDesign.transform.location[1], attachment.transform.location[2] - originalDesign.transform.location[2]];
+        newAttachment.transform = {
+          ...attachment.transform,
+          location: [referencePoint.position.x * 100 + relativePosition[0], referencePoint.position.z * 100 + relativePosition[1], referencePoint.position.y * 100 + relativePosition[2]],
+        };
+        targetDesign.attachments.push(newAttachment);
+      } catch (error) {
+        console.error("Error processing attachment:", error);
+      }
+    });
+  }
+}
+
+function downloadProcessedJSON() {
+  if (!processedDesign) {
+    alert("No processed design available. Please process a design first.");
+    return;
+  }
+
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(processedDesign, null, 2));
+  const downloadAnchorNode = document.createElement("a");
+  downloadAnchorNode.setAttribute("href", dataStr);
+  downloadAnchorNode.setAttribute("download", "processed_design.json");
+  document.body.appendChild(downloadAnchorNode);
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
 }
 
 function createPlaneVisualization() {
@@ -83,19 +178,17 @@ function generatePoints() {
   clearPoints();
 
   const point1Coords = new THREE.Vector3(parseFloat(document.getElementById("point1X").value), parseFloat(document.getElementById("point1Y").value), parseFloat(document.getElementById("point1Z").value));
-
   const point2Coords = new THREE.Vector3(parseFloat(document.getElementById("point2X").value), parseFloat(document.getElementById("point2Y").value), parseFloat(document.getElementById("point2Z").value));
 
   const repetitions = parseInt(document.getElementById("repetitions").value);
   const segments = parseInt(document.getElementById("segments").value);
 
+  // Create input points but don't add them to allPoints
   point1 = createSphere(point1Coords, 0xff0000);
   point2 = createSphere(point2Coords, 0xff0000);
-  allPoints.push(point1, point2);
 
   const midpoint = new THREE.Vector3().addVectors(point1Coords, point2Coords).multiplyScalar(0.5);
   centerPoint = createSphere(midpoint, 0x00ff00);
-  allPoints.push(centerPoint);
 
   const axis = new THREE.Vector3().subVectors(point2Coords, point1Coords).normalize();
   let perpVector = new THREE.Vector3(0, 1, 0);
