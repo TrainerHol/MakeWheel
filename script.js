@@ -78,6 +78,9 @@ function processDesign() {
     attachments: [],
   };
 
+  // Remove the root item from the processed design
+  delete processedDesign.transform;
+
   // Process for all generated points
   allPoints.forEach((point, index) => {
     const newAttachment = {
@@ -118,6 +121,47 @@ function processAttachments(originalDesign, targetDesign, referencePoint) {
       }
     });
   }
+}
+
+function setupMouseControls() {
+  let isDragging = false;
+  let previousMousePosition = {
+    x: 0,
+    y: 0,
+  };
+
+  renderer.domElement.addEventListener("mousedown", function (e) {
+    isDragging = true;
+  });
+
+  renderer.domElement.addEventListener("mousemove", function (e) {
+    let deltaMove = {
+      x: e.offsetX - previousMousePosition.x,
+      y: e.offsetY - previousMousePosition.y,
+    };
+
+    if (isDragging) {
+      let deltaRotationQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(toRadians(deltaMove.y * 1), toRadians(deltaMove.x * 1), 0, "XYZ"));
+
+      camera.position.applyQuaternion(deltaRotationQuaternion);
+      camera.lookAt(scene.position);
+    }
+
+    previousMousePosition = {
+      x: e.offsetX,
+      y: e.offsetY,
+    };
+  });
+
+  renderer.domElement.addEventListener("mouseup", function (e) {
+    isDragging = false;
+  });
+
+  renderer.domElement.addEventListener("wheel", function (e) {
+    let zoomAmount = e.deltaY * 0.1;
+    camera.position.multiplyScalar(1 + zoomAmount / 100);
+    camera.lookAt(scene.position);
+  });
 }
 
 function downloadProcessedJSON() {
