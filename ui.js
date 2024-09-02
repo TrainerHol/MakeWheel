@@ -132,19 +132,9 @@ export class UI {
       coordinatesDiv.appendChild(div);
     };
 
-    addCoordinate("Point 1", this.wheel.point1, 0);
-    addCoordinate("Point 2", this.wheel.point2, 1);
-    addCoordinate("Center", this.wheel.centerPoint, 2);
-
-    this.wheel.pairPoints.forEach((point, index) => {
-      addCoordinate(`Pair ${index + 1} Point`, point, index + 3);
-    });
-
-    this.wheel.segmentPoints.forEach((point, index) => {
-      const segmentCount = document.getElementById("segments").value;
-      const pairIndex = Math.floor(index / segmentCount) + 1;
-      const segmentIndex = (index % segmentCount) + 1;
-      addCoordinate(`Pair ${pairIndex} Segment ${segmentIndex}`, point, index + this.wheel.pairPoints.length + 3);
+    // Add coordinates for all points in the wheel
+    this.wheel.allPoints.forEach((point, index) => {
+      addCoordinate(`Point ${index + 1}`, point, index);
     });
 
     this.setupCopyButtons();
