@@ -106,7 +106,7 @@ export class Wheel {
     }
   }
 
-  generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height) {
+  generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter) {
     this.clearPoints();
     this.shapeType = 'conicalSpiral';
 
@@ -122,25 +122,34 @@ export class Wheel {
     const maxTheta = turns * 2 * Math.PI;
 
     let currentLength = 0;
-    let theta = 0;
+    let theta = maxTheta;
 
-    while (currentLength < totalLength && theta <= maxTheta) {
-      const t = currentLength / totalLength;
-      const radius = a * theta;
-      const currentHeight = isUpright ? t * height : -t * height;
+    while (theta >= 0) {
+        const t = currentLength / totalLength;
+        const radius = a * theta;
+        const currentHeight = isUpright ? t * height : -t * height;
 
-      const x = centerPoint.x + radius * Math.cos(direction === 'clockwise' ? -theta : theta);
-      const z = centerPoint.z + radius * Math.sin(direction === 'clockwise' ? -theta : theta);
-      const y = startPoint.y + currentHeight;
+        // Calculate position relative to the center point
+        const x = centerPoint.x + radius * Math.cos(direction === 'clockwise' ? theta : -theta);
+        const z = centerPoint.z + radius * Math.sin(direction === 'clockwise' ? theta : -theta);
+        let y;
 
-      const point = new THREE.Vector3(x, y, z);
-      const sphere = this.createSphere(point, 0xff0000);
-      this.allPoints.push(sphere);
+        if (startFromCenter) {
+            y = centerPoint.y + currentHeight;
+        } else {
+            // Interpolate height from start point to end point
+            y = startPoint.y + (centerPoint.y - startPoint.y) * (1 - t) + currentHeight;
+        }
 
-      currentLength += segmentLength;
-      theta = Math.sqrt((currentLength * 2) / a);
+        const point = new THREE.Vector3(x, y, z);
+        const sphere = this.createSphere(point, 0xff0000);
+        this.allPoints.push(sphere);
+
+        currentLength += segmentLength;
+        theta -= (2 * Math.PI * turns) / (segments - 1); // Decrease theta evenly based on segments and turns
     }
-  }
+}
+
 
   createSphere(position, color, size = 1) {
     const geometry = new THREE.SphereGeometry(size);

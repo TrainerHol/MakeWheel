@@ -94,8 +94,9 @@ export class UI {
     const turns = parseFloat(document.getElementById("conicalSpiralTurns").value);
     const isUpright = document.getElementById("conicalSpiralOrientation").value === "upright";
     const height = parseFloat(document.getElementById("conicalSpiralHeight").value);
+    const startFromCenter = document.getElementById("conicalSpiralStartPoint").value === "center";
 
-    this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height);
+    this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter);
     this.sceneManager.resetCamera(this.wheel.centerPoint);
     this.updateCoordinatesList();
   }
