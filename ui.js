@@ -210,6 +210,7 @@ export class UI {
       reader.onload = (e) => {
         try {
           this.uploadedDesign = JSON.parse(e.target.result);
+          this.uploadedDesign.name = file.name.split('.').slice(0, -1).join('.'); // Extract the file name without extension
           console.log("Design JSON loaded successfully");
         } catch (error) {
           console.error("Error parsing JSON:", error);
