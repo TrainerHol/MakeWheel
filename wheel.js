@@ -115,6 +115,9 @@ export class Wheel {
     this.allPoints.push(startSphere);
 
     const startRadius = new THREE.Vector2(startPoint.x - centerPoint.x, startPoint.z - centerPoint.z).length();
+    const heightDirection = isUpright ? 1 : -1;
+
+    // Calculate total length along the spiral
     const totalLength = Math.sqrt(Math.pow(startRadius, 2) + Math.pow(height, 2)) * turns;
     const segmentLength = totalLength / (segments - 1);
 
@@ -122,23 +125,22 @@ export class Wheel {
     const maxTheta = turns * 2 * Math.PI;
 
     let currentLength = 0;
-    let theta = maxTheta;
+    let theta = 0;
 
-    while (theta >= 0) {
+    while (currentLength < totalLength) {
         const t = currentLength / totalLength;
-        const radius = a * theta;
-        const currentHeight = isUpright ? t * height : -t * height;
+        const radius = startRadius - (t * startRadius); // Linearly interpolate radius from startPoint to centerPoint
+        const currentHeight = t * height * heightDirection;
 
         // Calculate position relative to the center point
-        const x = centerPoint.x + radius * Math.cos(direction === 'clockwise' ? theta : -theta);
-        const z = centerPoint.z + radius * Math.sin(direction === 'clockwise' ? theta : -theta);
+        const x = centerPoint.x + radius * Math.cos(direction === 'clockwise' ? -theta : theta);
+        const z = centerPoint.z + radius * Math.sin(direction === 'clockwise' ? -theta : theta);
         let y;
 
         if (startFromCenter) {
             y = centerPoint.y + currentHeight;
         } else {
-            // Interpolate height from start point to end point
-            y = startPoint.y + (centerPoint.y - startPoint.y) * (1 - t) + currentHeight;
+            y = startPoint.y + currentHeight;
         }
 
         const point = new THREE.Vector3(x, y, z);
@@ -146,7 +148,9 @@ export class Wheel {
         this.allPoints.push(sphere);
 
         currentLength += segmentLength;
-        theta -= (2 * Math.PI * turns) / (segments - 1); // Decrease theta evenly based on segments and turns
+
+        // Increment theta based on the next arc length
+        theta += segmentLength / radius;
     }
 }
 
