@@ -106,6 +106,8 @@ export class UI {
     coordinatesDiv.innerHTML = `<h3>Coordinates (Total #: ${this.wheel.allPoints.length})</h3>`;
 
     const addCoordinate = (name, point, index) => {
+      if (!point) return; // Add null check
+
       let x = point.position.x;
       let y = point.position.y;
       let z = point.position.z;

@@ -104,6 +104,12 @@ export class Wheel {
       currentLength += segmentLength;
       theta = Math.sqrt((currentLength * 2) / a);
     }
+
+    // Ensure at least one point is added to pairPoints and segmentPoints
+    if (this.allPoints.length > 0) {
+      this.pairPoints.push(this.allPoints[0]);
+      this.segmentPoints.push(this.allPoints[0]);
+    }
   }
 
   generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter) {
