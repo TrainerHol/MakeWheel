@@ -106,6 +106,37 @@ export class Wheel {
     }
   }
 
+  generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height) {
+    this.clearPoints();
+    this.shapeType = 'conicalSpiral';
+
+    this.centerPoint = this.createSphere(centerPoint, 0x00ff00);
+    const startSphere = this.createSphere(startPoint, 0xff0000);
+    this.allPoints.push(startSphere);
+
+    const startRadius = new THREE.Vector2(startPoint.x - centerPoint.x, startPoint.z - centerPoint.z).length();
+    const totalAngle = turns * 2 * Math.PI;
+
+    // Calculate the total path length
+    const pathLength = Math.sqrt(Math.pow(startRadius, 2) + Math.pow(height, 2)) * turns;
+    const segmentLength = pathLength / (segments - 1); // Divide by (segments - 1) to include start and end points
+
+    for (let i = 0; i < segments; i++) {
+      const t = i / (segments - 1);
+      const angle = t * totalAngle;
+      const radius = startRadius * (1 - t);
+      const currentHeight = isUpright ? t * height : -t * height;
+
+      const x = centerPoint.x + radius * Math.cos(direction === 'clockwise' ? -angle : angle);
+      const z = centerPoint.z + radius * Math.sin(direction === 'clockwise' ? -angle : angle);
+      const y = startPoint.y + currentHeight;
+
+      const point = new THREE.Vector3(x, y, z);
+      const sphere = this.createSphere(point, 0xff0000);
+      this.allPoints.push(sphere);
+    }
+  }
+
   createSphere(position, color, size = 1) {
     const geometry = new THREE.SphereGeometry(size);
     const material = new THREE.MeshPhongMaterial({ color });

@@ -30,8 +30,10 @@ export class UI {
   generateShape() {
     if (this.shapeType === 'wheel') {
       this.generatePoints();
-    } else {
+    } else if (this.shapeType === 'spiral') {
       this.generateSpiral();
+    } else if (this.shapeType === 'conicalSpiral') {
+      this.generateConicalSpiral();
     }
   }
 
@@ -72,6 +74,28 @@ export class UI {
     const planeAngle = parseFloat(document.getElementById("spiralPlaneAngle").value);
 
     this.wheel.generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle);
+    this.sceneManager.resetCamera(this.wheel.centerPoint);
+    this.updateCoordinatesList();
+  }
+
+  generateConicalSpiral() {
+    const centerPoint = new THREE.Vector3(
+      parseFloat(document.getElementById("conicalSpiralCenterX").value),
+      parseFloat(document.getElementById("conicalSpiralCenterY").value),
+      parseFloat(document.getElementById("conicalSpiralCenterZ").value)
+    );
+    const startPoint = new THREE.Vector3(
+      parseFloat(document.getElementById("conicalSpiralStartX").value),
+      parseFloat(document.getElementById("conicalSpiralStartY").value),
+      parseFloat(document.getElementById("conicalSpiralStartZ").value)
+    );
+    const direction = document.getElementById("conicalSpiralDirection").value;
+    const segments = parseInt(document.getElementById("conicalSpiralSegments").value);
+    const turns = parseFloat(document.getElementById("conicalSpiralTurns").value);
+    const isUpright = document.getElementById("conicalSpiralOrientation").value === "upright";
+    const height = parseFloat(document.getElementById("conicalSpiralHeight").value);
+
+    this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height);
     this.sceneManager.resetCamera(this.wheel.centerPoint);
     this.updateCoordinatesList();
   }
@@ -291,13 +315,10 @@ export class UI {
   updateUIForShape() {
     const wheelInputs = document.getElementById("wheelInputs");
     const spiralInputs = document.getElementById("spiralInputs");
+    const conicalSpiralInputs = document.getElementById("conicalSpiralInputs");
 
-    if (this.shapeType === 'wheel') {
-      wheelInputs.style.display = 'block';
-      spiralInputs.style.display = 'none';
-    } else {
-      wheelInputs.style.display = 'none';
-      spiralInputs.style.display = 'block';
-    }
+    wheelInputs.style.display = this.shapeType === 'wheel' ? 'block' : 'none';
+    spiralInputs.style.display = this.shapeType === 'spiral' ? 'block' : 'none';
+    conicalSpiralInputs.style.display = this.shapeType === 'conicalSpiral' ? 'block' : 'none';
   }
 }

@@ -14,6 +14,7 @@
         <select id="shapeType">
           <option value="wheel">Wheel</option>
           <option value="spiral">Spiral</option>
+          <option value="conicalSpiral">Conical Spiral</option>
         </select>
       </div>
 
@@ -47,6 +48,28 @@
         <div>
           <label for="spiralPlaneAngle">Plane Angle: </label>
           <input type="number" id="spiralPlaneAngle" min="0" max="360" value="0" step="1" />
+        </div>
+      </div>
+
+      <div id="conicalSpiralInputs" style="display: none;">
+        <div>Center Point: X: <input type="number" id="conicalSpiralCenterX" value="0" step="1" /> Y: <input type="number" id="conicalSpiralCenterY" value="50" step="1" /> Z: <input type="number" id="conicalSpiralCenterZ" value="0" step="1" /></div>
+        <div>Start Point: X: <input type="number" id="conicalSpiralStartX" value="50" step="1" /> Y: <input type="number" id="conicalSpiralStartY" value="0" step="1" /> Z: <input type="number" id="conicalSpiralStartZ" value="0" step="1" /></div>
+        <div>
+          <label for="conicalSpiralDirection">Direction:</label>
+          <select id="conicalSpiralDirection">
+            <option value="clockwise">Clockwise</option>
+            <option value="counterclockwise">Counterclockwise</option>
+          </select>
+        </div>
+        <div>Segments: <input type="number" id="conicalSpiralSegments" min="1" max="100" value="50" step="1" /></div>
+        <div>Turns: <input type="number" id="conicalSpiralTurns" min="0.1" max="10" value="2" step="0.1" /></div>
+        <div>Height: <input type="number" id="conicalSpiralHeight" min="1" max="100" value="50" step="1" /></div>
+        <div>
+          <label for="conicalSpiralOrientation">Orientation:</label>
+          <select id="conicalSpiralOrientation">
+            <option value="upright">Upright</option>
+            <option value="inverted">Inverted</option>
+          </select>
         </div>
       </div>
 
