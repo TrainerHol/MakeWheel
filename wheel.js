@@ -115,25 +115,30 @@ export class Wheel {
     this.allPoints.push(startSphere);
 
     const startRadius = new THREE.Vector2(startPoint.x - centerPoint.x, startPoint.z - centerPoint.z).length();
-    const totalAngle = turns * 2 * Math.PI;
+    const totalLength = Math.sqrt(Math.pow(startRadius, 2) + Math.pow(height, 2)) * turns;
+    const segmentLength = totalLength / (segments - 1);
 
-    // Calculate the total path length
-    const pathLength = Math.sqrt(Math.pow(startRadius, 2) + Math.pow(height, 2)) * turns;
-    const segmentLength = pathLength / (segments - 1); // Divide by (segments - 1) to include start and end points
+    const a = startRadius / (turns * 2 * Math.PI); // Spiral constant
+    const maxTheta = turns * 2 * Math.PI;
 
-    for (let i = 0; i < segments; i++) {
-      const t = i / (segments - 1);
-      const angle = t * totalAngle;
-      const radius = startRadius * (1 - t);
+    let currentLength = 0;
+    let theta = 0;
+
+    while (currentLength < totalLength && theta <= maxTheta) {
+      const t = currentLength / totalLength;
+      const radius = a * theta;
       const currentHeight = isUpright ? t * height : -t * height;
 
-      const x = centerPoint.x + radius * Math.cos(direction === 'clockwise' ? -angle : angle);
-      const z = centerPoint.z + radius * Math.sin(direction === 'clockwise' ? -angle : angle);
+      const x = centerPoint.x + radius * Math.cos(direction === 'clockwise' ? -theta : theta);
+      const z = centerPoint.z + radius * Math.sin(direction === 'clockwise' ? -theta : theta);
       const y = startPoint.y + currentHeight;
 
       const point = new THREE.Vector3(x, y, z);
       const sphere = this.createSphere(point, 0xff0000);
       this.allPoints.push(sphere);
+
+      currentLength += segmentLength;
+      theta = Math.sqrt((currentLength * 2) / a);
     }
   }
 
