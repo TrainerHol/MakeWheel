@@ -167,28 +167,58 @@ export class Wheel {
     this.centerPoint = this.createSphere(centerPoint, 0x00ff00);
 
     const totalAngle = turns * 2 * Math.PI;
-    const angleStep = totalAngle / segments;
     const phiStart = THREE.MathUtils.degToRad(startAngle);
-    const phiLength = THREE.MathUtils.degToRad(endAngle - startAngle);
+    const phiEnd = THREE.MathUtils.degToRad(endAngle);
+    const phiLength = phiEnd - phiStart;
 
-    for (let i = 0; i <= segments; i++) {
-      const t = i / segments;
-      const theta = direction === "clockwise" ? -t * totalAngle : t * totalAngle;
-      const phi = phiStart + t * phiLength;
-
+    const calculatePoint = (theta, phi) => {
       const x = centerPoint.x + radius * Math.sin(phi) * Math.cos(theta);
       const y = centerPoint.y + radius * Math.cos(phi);
       const z = centerPoint.z + radius * Math.sin(phi) * Math.sin(theta);
+      return new THREE.Vector3(x, y, z);
+    };
 
-      const point = new THREE.Vector3(x, y, z);
-      const sphere = this.createSphere(point, 0xff0000);
-      this.allPoints.push(sphere);
+    // Pre-calculate points along the spiral
+    const spiralPoints = [];
+    const stepSize = 0.01;
+    let theta = 0;
+    let phi = phiStart;
+
+    while (phi <= phiEnd && theta <= totalAngle) {
+      spiralPoints.push(calculatePoint(direction === "clockwise" ? -theta : theta, phi));
+      theta += stepSize;
+      phi += (stepSize * phiLength) / totalAngle;
     }
 
-    // Ensure at least one point is added to pairPoints and segmentPoints
-    if (this.allPoints.length > 0) {
-      this.pairPoints.push(this.allPoints[0]);
-      this.segmentPoints.push(this.allPoints[0]);
+    // Calculate total length of the spiral
+    let totalLength = 0;
+    for (let i = 1; i < spiralPoints.length; i++) {
+      totalLength += spiralPoints[i].distanceTo(spiralPoints[i - 1]);
+    }
+
+    // Distribute points evenly along the spiral
+    const segmentLength = totalLength / (segments - 1);
+    let currentLength = 0;
+    let currentIndex = 0;
+
+    for (let i = 0; i < segments; i++) {
+      while (currentIndex < spiralPoints.length - 1 && currentLength + spiralPoints[currentIndex].distanceTo(spiralPoints[currentIndex + 1]) < i * segmentLength) {
+        currentLength += spiralPoints[currentIndex].distanceTo(spiralPoints[currentIndex + 1]);
+        currentIndex++;
+      }
+
+      let point;
+      if (currentIndex >= spiralPoints.length - 1) {
+        point = spiralPoints[spiralPoints.length - 1];
+      } else {
+        const remainingLength = i * segmentLength - currentLength;
+        const nextPoint = spiralPoints[currentIndex + 1];
+        const direction = nextPoint.clone().sub(spiralPoints[currentIndex]).normalize();
+        point = spiralPoints[currentIndex].clone().add(direction.multiplyScalar(remainingLength));
+      }
+
+      const sphere = this.createSphere(point, 0xff0000);
+      this.allPoints.push(sphere);
     }
   }
 

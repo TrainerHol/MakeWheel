@@ -6,7 +6,7 @@ MakeWheel is a tool designed to take custom design files from MakePlace and repe
 
 ## Features
 
-- **Shape Types**: Choose from three different shape types: Wheel, Spiral, and Conical Spiral.
+- **Shape Types**: Choose from four different shape types: Wheel, Spiral, Conical Spiral, and Spherical Spiral.
 - **Customizable Parameters**: Adjust various parameters such as points, repetitions, segments, plane angles, and more to create unique designs.
 - **File Upload and Processing**: Upload a JSON design file, process it according to the selected shape type, and download the processed JSON file.
 - **Interactive UI**: An intuitive user interface to input parameters and visualize the generated shapes in real-time.
@@ -24,12 +24,14 @@ MakeWheel is a tool designed to take custom design files from MakePlace and repe
 ## Shape Types
 
 ### Wheel
+
 - **Point 1 and Point 2**: Define the two points that form the base of the wheel.
 - **Repetitions**: Number of times the shape is repeated around the wheel.
 - **Segments**: Number of segments between each repetition.
 - **Plane Angle**: Angle of the plane in which the wheel lies.
 
 ### Spiral
+
 - **Center Point**: The center of the spiral.
 - **Start Point**: The starting point of the spiral.
 - **Direction**: Clockwise or counterclockwise direction of the spiral.
@@ -38,6 +40,7 @@ MakeWheel is a tool designed to take custom design files from MakePlace and repe
 - **Plane Angle**: Angle of the plane in which the spiral lies.
 
 ### Conical Spiral
+
 - **Center Point**: The center of the conical spiral.
 - **Start Point**: The starting point of the conical spiral.
 - **Direction**: Clockwise or counterclockwise direction of the conical spiral.
@@ -46,6 +49,22 @@ MakeWheel is a tool designed to take custom design files from MakePlace and repe
 - **Height**: Height of the conical spiral.
 - **Orientation**: Upright or inverted orientation.
 - **Start Point**: Whether to start from the center or the start coordinate.
+
+**Approximation for Equal Spacing**: The total length of the conical spiral is calculated using the formula:
+\[ \text{Total Length} = \sqrt{(\text{Start Radius})^2 + (\text{Height})^2} \times \text{Turns} \]
+The segment length is then determined by dividing the total length by the number of segments.
+
+### Spherical Spiral
+
+- **Center Point**: The center of the spherical spiral.
+- **Radius**: The radius of the spherical spiral.
+- **Direction**: Clockwise or counterclockwise direction of the spiral.
+- **Segments**: Number of segments in the spiral.
+- **Turns**: Number of turns in the spiral.
+- **Start Angle**: The angle at which the spiral starts.
+- **End Angle**: The angle at which the spiral ends.
+
+**Approximation for Equal Spacing**: The total length of the spherical spiral is approximated by calculating the distance between consecutive points along the spiral. The segment length is then distributed evenly based on the total length divided by the number of segments.
 
 ## Usage
 
@@ -64,5 +83,3 @@ MakeWheel is a tool designed to take custom design files from MakePlace and repe
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-
