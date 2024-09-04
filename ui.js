@@ -5,7 +5,7 @@ export class UI {
     this.useMakePlaceFormat = false;
     this.uploadedDesign = null;
     this.processedDesign = null;
-    this.shapeType = 'wheel';
+    this.shapeType = "wheel";
   }
 
   init() {
@@ -28,26 +28,20 @@ export class UI {
   }
 
   generateShape() {
-    if (this.shapeType === 'wheel') {
+    if (this.shapeType === "wheel") {
       this.generatePoints();
-    } else if (this.shapeType === 'spiral') {
+    } else if (this.shapeType === "spiral") {
       this.generateSpiral();
-    } else if (this.shapeType === 'conicalSpiral') {
+    } else if (this.shapeType === "conicalSpiral") {
       this.generateConicalSpiral();
+    } else if (this.shapeType === "sphericalSpiral") {
+      this.generateSphericalSpiral();
     }
   }
 
   generatePoints() {
-    const point1Coords = new THREE.Vector3(
-      parseFloat(document.getElementById("point1X").value),
-      parseFloat(document.getElementById("point1Y").value),
-      parseFloat(document.getElementById("point1Z").value)
-    );
-    const point2Coords = new THREE.Vector3(
-      parseFloat(document.getElementById("point2X").value),
-      parseFloat(document.getElementById("point2Y").value),
-      parseFloat(document.getElementById("point2Z").value)
-    );
+    const point1Coords = new THREE.Vector3(parseFloat(document.getElementById("point1X").value), parseFloat(document.getElementById("point1Y").value), parseFloat(document.getElementById("point1Z").value));
+    const point2Coords = new THREE.Vector3(parseFloat(document.getElementById("point2X").value), parseFloat(document.getElementById("point2Y").value), parseFloat(document.getElementById("point2Z").value));
     const repetitions = parseInt(document.getElementById("repetitions").value);
     const segments = parseInt(document.getElementById("segments").value);
     const planeAngle = parseFloat(document.getElementById("planeAngle").value);
@@ -58,16 +52,8 @@ export class UI {
   }
 
   generateSpiral() {
-    const centerPoint = new THREE.Vector3(
-      parseFloat(document.getElementById("spiralCenterX").value),
-      parseFloat(document.getElementById("spiralCenterY").value),
-      parseFloat(document.getElementById("spiralCenterZ").value)
-    );
-    const startPoint = new THREE.Vector3(
-      parseFloat(document.getElementById("spiralStartX").value),
-      parseFloat(document.getElementById("spiralStartY").value),
-      parseFloat(document.getElementById("spiralStartZ").value)
-    );
+    const centerPoint = new THREE.Vector3(parseFloat(document.getElementById("spiralCenterX").value), parseFloat(document.getElementById("spiralCenterY").value), parseFloat(document.getElementById("spiralCenterZ").value));
+    const startPoint = new THREE.Vector3(parseFloat(document.getElementById("spiralStartX").value), parseFloat(document.getElementById("spiralStartY").value), parseFloat(document.getElementById("spiralStartZ").value));
     const direction = document.getElementById("spiralDirection").value;
     const segments = parseInt(document.getElementById("spiralSegments").value);
     const turns = parseFloat(document.getElementById("spiralTurns").value);
@@ -79,16 +65,8 @@ export class UI {
   }
 
   generateConicalSpiral() {
-    const centerPoint = new THREE.Vector3(
-      parseFloat(document.getElementById("conicalSpiralCenterX").value),
-      parseFloat(document.getElementById("conicalSpiralCenterY").value),
-      parseFloat(document.getElementById("conicalSpiralCenterZ").value)
-    );
-    const startPoint = new THREE.Vector3(
-      parseFloat(document.getElementById("conicalSpiralStartX").value),
-      parseFloat(document.getElementById("conicalSpiralStartY").value),
-      parseFloat(document.getElementById("conicalSpiralStartZ").value)
-    );
+    const centerPoint = new THREE.Vector3(parseFloat(document.getElementById("conicalSpiralCenterX").value), parseFloat(document.getElementById("conicalSpiralCenterY").value), parseFloat(document.getElementById("conicalSpiralCenterZ").value));
+    const startPoint = new THREE.Vector3(parseFloat(document.getElementById("conicalSpiralStartX").value), parseFloat(document.getElementById("conicalSpiralStartY").value), parseFloat(document.getElementById("conicalSpiralStartZ").value));
     const direction = document.getElementById("conicalSpiralDirection").value;
     const segments = parseInt(document.getElementById("conicalSpiralSegments").value);
     const turns = parseFloat(document.getElementById("conicalSpiralTurns").value);
@@ -97,6 +75,20 @@ export class UI {
     const startFromCenter = document.getElementById("conicalSpiralStartPoint").value === "center";
 
     this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter);
+    this.sceneManager.resetCamera(this.wheel.centerPoint);
+    this.updateCoordinatesList();
+  }
+
+  generateSphericalSpiral() {
+    const centerPoint = new THREE.Vector3(parseFloat(document.getElementById("sphericalSpiralCenterX").value), parseFloat(document.getElementById("sphericalSpiralCenterY").value), parseFloat(document.getElementById("sphericalSpiralCenterZ").value));
+    const radius = parseFloat(document.getElementById("sphericalSpiralRadius").value);
+    const direction = document.getElementById("sphericalSpiralDirection").value;
+    const segments = parseInt(document.getElementById("sphericalSpiralSegments").value);
+    const turns = parseFloat(document.getElementById("sphericalSpiralTurns").value);
+    const startAngle = parseFloat(document.getElementById("sphericalSpiralStartAngle").value);
+    const endAngle = parseFloat(document.getElementById("sphericalSpiralEndAngle").value);
+
+    this.wheel.generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle);
     this.sceneManager.resetCamera(this.wheel.centerPoint);
     this.updateCoordinatesList();
   }
@@ -178,9 +170,7 @@ export class UI {
       };
 
       if (isDragging) {
-        let deltaRotationQuaternion = new THREE.Quaternion().setFromEuler(
-          new THREE.Euler(toRadians(deltaMove.y * 1), toRadians(deltaMove.x * 1), 0, "XYZ")
-        );
+        let deltaRotationQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(toRadians(deltaMove.y * 1), toRadians(deltaMove.x * 1), 0, "XYZ"));
 
         this.sceneManager.camera.position.applyQuaternion(deltaRotationQuaternion);
         this.sceneManager.camera.lookAt(this.sceneManager.scene.position);
@@ -210,7 +200,7 @@ export class UI {
       reader.onload = (e) => {
         try {
           this.uploadedDesign = JSON.parse(e.target.result);
-          this.uploadedDesign.name = file.name.split('.').slice(0, -1).join('.'); // Extract the file name without extension
+          this.uploadedDesign.name = file.name.split(".").slice(0, -1).join("."); // Extract the file name without extension
           console.log("Design JSON loaded successfully");
         } catch (error) {
           console.error("Error parsing JSON:", error);
@@ -266,18 +256,10 @@ export class UI {
       originalDesign.attachments.forEach((attachment) => {
         try {
           const newAttachment = { ...attachment };
-          const relativePosition = [
-            attachment.transform.location[0] - originalDesign.transform.location[0],
-            attachment.transform.location[1] - originalDesign.transform.location[1],
-            attachment.transform.location[2] - originalDesign.transform.location[2],
-          ];
+          const relativePosition = [attachment.transform.location[0] - originalDesign.transform.location[0], attachment.transform.location[1] - originalDesign.transform.location[1], attachment.transform.location[2] - originalDesign.transform.location[2]];
           newAttachment.transform = {
             ...attachment.transform,
-            location: [
-              referencePoint.position.x * 100 + relativePosition[0],
-              referencePoint.position.z * 100 + relativePosition[1],
-              referencePoint.position.y * 100 + relativePosition[2],
-            ],
+            location: [referencePoint.position.x * 100 + relativePosition[0], referencePoint.position.z * 100 + relativePosition[1], referencePoint.position.y * 100 + relativePosition[2]],
           };
           targetDesign.attachments.push(newAttachment);
         } catch (error) {
@@ -310,9 +292,11 @@ export class UI {
     const wheelInputs = document.getElementById("wheelInputs");
     const spiralInputs = document.getElementById("spiralInputs");
     const conicalSpiralInputs = document.getElementById("conicalSpiralInputs");
+    const sphericalSpiralInputs = document.getElementById("sphericalSpiralInputs");
 
-    wheelInputs.style.display = this.shapeType === 'wheel' ? 'block' : 'none';
-    spiralInputs.style.display = this.shapeType === 'spiral' ? 'block' : 'none';
-    conicalSpiralInputs.style.display = this.shapeType === 'conicalSpiral' ? 'block' : 'none';
+    wheelInputs.style.display = this.shapeType === "wheel" ? "block" : "none";
+    spiralInputs.style.display = this.shapeType === "spiral" ? "block" : "none";
+    conicalSpiralInputs.style.display = this.shapeType === "conicalSpiral" ? "block" : "none";
+    sphericalSpiralInputs.style.display = this.shapeType === "sphericalSpiral" ? "block" : "none";
   }
 }

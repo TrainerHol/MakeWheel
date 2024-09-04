@@ -15,6 +15,7 @@
           <option value="wheel">Wheel</option>
           <option value="spiral">Spiral</option>
           <option value="conicalSpiral">Conical Spiral</option>
+          <option value="sphericalSpiral">Spherical Spiral</option>
         </select>
       </div>
 
@@ -33,7 +34,7 @@
         </div>
       </div>
 
-      <div id="spiralInputs" style="display: none;">
+      <div id="spiralInputs" style="display: none">
         <div>Center Point: X: <input type="number" id="spiralCenterX" value="0" step="1" /> Y: <input type="number" id="spiralCenterY" value="0" step="1" /> Z: <input type="number" id="spiralCenterZ" value="0" step="1" /></div>
         <div>Start Point: X: <input type="number" id="spiralStartX" value="25" step="1" /> Y: <input type="number" id="spiralStartY" value="0" step="1" /> Z: <input type="number" id="spiralStartZ" value="0" step="1" /></div>
         <div>
@@ -51,7 +52,7 @@
         </div>
       </div>
 
-      <div id="conicalSpiralInputs" style="display: none;">
+      <div id="conicalSpiralInputs" style="display: none">
         <div>Center Point: X: <input type="number" id="conicalSpiralCenterX" value="0" step="1" /> Y: <input type="number" id="conicalSpiralCenterY" value="0" step="1" /> Z: <input type="number" id="conicalSpiralCenterZ" value="0" step="1" /></div>
         <div>Start Point: X: <input type="number" id="conicalSpiralStartX" value="25" step="1" /> Y: <input type="number" id="conicalSpiralStartY" value="0" step="1" /> Z: <input type="number" id="conicalSpiralStartZ" value="0" step="1" /></div>
         <div>
@@ -78,6 +79,22 @@
             <option value="start">Start Coordinate</option>
           </select>
         </div>
+      </div>
+
+      <div id="sphericalSpiralInputs" style="display: none">
+        <div>Center Point: X: <input type="number" id="sphericalSpiralCenterX" value="0" step="1" /> Y: <input type="number" id="sphericalSpiralCenterY" value="0" step="1" /> Z: <input type="number" id="sphericalSpiralCenterZ" value="0" step="1" /></div>
+        <div>Radius: <input type="number" id="sphericalSpiralRadius" min="1" max="100" value="25" step="1" /></div>
+        <div>
+          <label for="sphericalSpiralDirection">Direction:</label>
+          <select id="sphericalSpiralDirection">
+            <option value="clockwise">Clockwise</option>
+            <option value="counterclockwise">Counterclockwise</option>
+          </select>
+        </div>
+        <div>Segments: <input type="number" id="sphericalSpiralSegments" min="1" max="100" value="50" step="1" /></div>
+        <div>Turns: <input type="number" id="sphericalSpiralTurns" min="0.1" max="10" value="2" step="0.1" /></div>
+        <div>Start Angle: <input type="number" id="sphericalSpiralStartAngle" min="0" max="360" value="0" step="1" /></div>
+        <div>End Angle: <input type="number" id="sphericalSpiralEndAngle" min="0" max="360" value="180" step="1" /></div>
       </div>
 
       <button id="generateBtn">Generate</button>
