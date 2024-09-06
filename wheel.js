@@ -238,14 +238,25 @@ export class Wheel {
     const path = this.generateGridPath(rows, columns, floors, [startRow, startCol, 0]);
     const points = [];
 
-    // Create grid points and apply step amount along the path
+    let lastPoint = null;
     for (let i = 0; i < path.length; i++) {
       const [row, col, floor] = path[i];
+
       const x = centerPoint.x - halfWidth + col * spacing;
-      const y = centerPoint.y + i * stepAmount; // Use i for continuous elevation
+      const y = centerPoint.y + i * stepAmount - (floor > 1 ? floor * stepAmount : 0);
       const z = centerPoint.z - halfHeight + row * spacing;
+
       const point = new THREE.Vector3(x, y, z);
-      points.push(point);
+
+      // Check if this point is at the same x,z coordinate as the last point
+      if (lastPoint && lastPoint.x === point.x && lastPoint.z === point.z) {
+        // If it is, we're starting a new floor. Update the y-coordinate of the last point
+        lastPoint.y = point.y;
+      } else {
+        // Otherwise, add the new point
+        points.push(point);
+        lastPoint = point;
+      }
     }
 
     // Create spheres for each point
