@@ -8,6 +8,7 @@ export class Wheel {
     this.segmentPoints = [];
     this.allPoints = [];
     this.shapeType = "wheel"; // Add this line
+    this.lines = []; // Add this line to keep track of the lines
   }
 
   generatePoints(point1Coords, point2Coords, repetitions, segments, planeAngle) {
@@ -222,6 +223,96 @@ export class Wheel {
     }
   }
 
+  generateGrid(centerPoint, rows = 3, columns = 3, spacing = 4, stepAmount = 2, floors = 1) {
+    this.clearPoints();
+    this.shapeType = "grid";
+
+    this.centerPoint = this.createSphere(centerPoint, 0x00ff00);
+
+    const halfWidth = ((columns - 1) * spacing) / 2;
+    const halfHeight = ((rows - 1) * spacing) / 2;
+
+    // Generate a random starting corner
+    const startRow = Math.random() < 0.5 ? 0 : rows - 1;
+    const startCol = Math.random() < 0.5 ? 0 : columns - 1;
+    const path = this.generateGridPath(rows, columns, floors, [startRow, startCol, 0]);
+    const points = [];
+
+    // Create grid points and apply step amount along the path
+    for (let i = 0; i < path.length; i++) {
+      const [row, col, floor] = path[i];
+      const x = centerPoint.x - halfWidth + col * spacing;
+      const y = centerPoint.y + i * stepAmount; // Use i for continuous elevation
+      const z = centerPoint.z - halfHeight + row * spacing;
+      const point = new THREE.Vector3(x, y, z);
+      points.push(point);
+    }
+
+    // Create spheres for each point
+    points.forEach((point) => {
+      const sphere = this.createSphere(point, 0xff0000);
+      this.allPoints.push(sphere);
+    });
+
+    // Add lines to connect points along the path
+    const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+    for (let i = 1; i < points.length; i++) {
+      const geometry = new THREE.BufferGeometry().setFromPoints([points[i - 1], points[i]]);
+      const line = new THREE.Line(geometry, material);
+      this.scene.add(line);
+      this.lines.push(line);
+    }
+
+    // Ensure at least one point is added to pairPoints and segmentPoints
+    if (this.allPoints.length > 0) {
+      this.pairPoints.push(this.allPoints[0]);
+      this.segmentPoints.push(this.allPoints[0]);
+    }
+  }
+
+  generateGridPath(rows, columns, floors, startPoint = null) {
+    const totalCells = rows * columns * floors;
+    const path = [];
+    const visited = new Set();
+
+    let current = startPoint || [0, 0, 0];
+
+    const directions = [
+      [0, 1, 0], // Right
+      [1, 0, 0], // Down
+      [0, -1, 0], // Left
+      [-1, 0, 0], // Up
+    ];
+
+    while (path.length < totalCells) {
+      path.push(current);
+      visited.add(`${current[0]},${current[1]},${current[2]}`);
+
+      // Find the next unvisited neighbor
+      let nextCell = null;
+      for (const [dx, dy, dz] of directions) {
+        const next = [Math.min(Math.max(current[0] + dx, 0), rows - 1), Math.min(Math.max(current[1] + dy, 0), columns - 1), current[2]];
+        if (!visited.has(`${next[0]},${next[1]},${next[2]}`)) {
+          nextCell = next;
+          break;
+        }
+      }
+
+      if (nextCell) {
+        current = nextCell;
+      } else {
+        // Move to the next floor if all cells on the current floor are visited
+        if (current[2] < floors - 1) {
+          current = [startPoint[0], startPoint[1], current[2] + 1];
+        } else {
+          break; // All cells visited
+        }
+      }
+    }
+
+    return path;
+  }
+
   createSphere(position, color, size = 1) {
     const geometry = new THREE.SphereGeometry(size);
     const material = new THREE.MeshPhongMaterial({ color });
@@ -233,10 +324,12 @@ export class Wheel {
 
   clearPoints() {
     this.allPoints.forEach((point) => this.scene.remove(point));
+    this.lines.forEach((line) => this.scene.remove(line)); // Remove all lines
     this.point1 = this.point2 = this.centerPoint = null;
     this.pairPoints = [];
     this.segmentPoints = [];
     this.allPoints = [];
+    this.lines = []; // Clear the lines array
   }
 
   highlightPoint(index) {

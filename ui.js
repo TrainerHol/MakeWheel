@@ -36,6 +36,8 @@ export class UI {
       this.generateConicalSpiral();
     } else if (this.shapeType === "sphericalSpiral") {
       this.generateSphericalSpiral();
+    } else if (this.shapeType === "grid") {
+      this.generateGrid();
     }
   }
 
@@ -89,6 +91,29 @@ export class UI {
     const endAngle = parseFloat(document.getElementById("sphericalSpiralEndAngle").value);
 
     this.wheel.generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle);
+    this.sceneManager.resetCamera(this.wheel.centerPoint);
+    this.updateCoordinatesList();
+  }
+
+  generateGrid() {
+    const centerX = document.getElementById("gridCenterX");
+    const centerY = document.getElementById("gridCenterY");
+    const centerZ = document.getElementById("gridCenterZ");
+    const rows = document.getElementById("gridRows");
+    const columns = document.getElementById("gridColumns");
+    const spacing = document.getElementById("gridSpacing");
+    const stepAmount = document.getElementById("gridStepAmount");
+    const floors = document.getElementById("gridFloors");
+
+    if (!centerX || !centerY || !centerZ || !rows || !columns || !spacing || !stepAmount || !floors) {
+      console.error("One or more grid input elements are missing");
+      return;
+    }
+
+    const centerPoint = new THREE.Vector3(parseFloat(centerX.value) || 0, parseFloat(centerY.value) || 0, parseFloat(centerZ.value) || 0);
+
+    this.wheel.generateGrid(centerPoint, parseInt(rows.value) || 3, parseInt(columns.value) || 3, parseFloat(spacing.value) || 4, parseFloat(stepAmount.value) || 2, parseInt(floors.value) || 1);
+
     this.sceneManager.resetCamera(this.wheel.centerPoint);
     this.updateCoordinatesList();
   }
@@ -293,10 +318,12 @@ export class UI {
     const spiralInputs = document.getElementById("spiralInputs");
     const conicalSpiralInputs = document.getElementById("conicalSpiralInputs");
     const sphericalSpiralInputs = document.getElementById("sphericalSpiralInputs");
+    const gridInputs = document.getElementById("gridInputs");
 
     wheelInputs.style.display = this.shapeType === "wheel" ? "block" : "none";
     spiralInputs.style.display = this.shapeType === "spiral" ? "block" : "none";
     conicalSpiralInputs.style.display = this.shapeType === "conicalSpiral" ? "block" : "none";
     sphericalSpiralInputs.style.display = this.shapeType === "sphericalSpiral" ? "block" : "none";
+    gridInputs.style.display = this.shapeType === "grid" ? "block" : "none";
   }
 }

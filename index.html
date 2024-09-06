@@ -16,6 +16,7 @@
           <option value="spiral">Spiral</option>
           <option value="conicalSpiral">Conical Spiral</option>
           <option value="sphericalSpiral">Spherical Spiral</option>
+          <option value="grid">Grid</option>
         </select>
       </div>
 
@@ -95,6 +96,15 @@
         <div>Turns: <input type="number" id="sphericalSpiralTurns" min="0.1" max="10" value="2" step="0.1" /></div>
         <div>Start Angle: <input type="number" id="sphericalSpiralStartAngle" min="0" max="360" value="0" step="1" /></div>
         <div>End Angle: <input type="number" id="sphericalSpiralEndAngle" min="0" max="360" value="180" step="1" /></div>
+      </div>
+
+      <div id="gridInputs" style="display: none">
+        <div>Center Point: X: <input type="number" id="gridCenterX" value="0" step="1" /> Y: <input type="number" id="gridCenterY" value="0" step="1" /> Z: <input type="number" id="gridCenterZ" value="0" step="1" /></div>
+        <div>Rows: <input type="number" id="gridRows" min="2" max="20" value="3" step="1" /></div>
+        <div>Columns: <input type="number" id="gridColumns" min="2" max="20" value="3" step="1" /></div>
+        <div>Spacing: <input type="number" id="gridSpacing" min="1" max="10" value="4" step="0.1" /></div>
+        <div>Step Amount: <input type="number" id="gridStepAmount" min="0.1" max="10" value="2" step="0.1" /></div>
+        <div>Floors: <input type="number" id="gridFloors" min="1" max="10" value="1" step="1" /></div>
       </div>
 
       <button id="generateBtn">Generate</button>
