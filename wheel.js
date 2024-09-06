@@ -243,7 +243,7 @@ export class Wheel {
       const [row, col, floor] = path[i];
 
       const x = centerPoint.x - halfWidth + col * spacing;
-      const y = centerPoint.y + i * stepAmount - (floor > 1 ? floor * stepAmount : 0);
+      const y = centerPoint.y + i * stepAmount - (floor >= 1 ? floor * stepAmount : 0);
       const z = centerPoint.z - halfHeight + row * spacing;
 
       const point = new THREE.Vector3(x, y, z);
