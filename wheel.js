@@ -303,7 +303,8 @@ export class Wheel {
       } else {
         // Move to the next floor if all cells on the current floor are visited
         if (current[2] < floors - 1) {
-          current = [startPoint[0], startPoint[1], current[2] + 1];
+          // Use the last point of the current floor as the start point for the next floor
+          current = [current[0], current[1], current[2] + 1];
         } else {
           break; // All cells visited
         }
