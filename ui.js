@@ -1,7 +1,8 @@
 export class UI {
-  constructor(wheel, sceneManager) {
+  constructor(wheel, sceneManager, maze) {
     this.wheel = wheel;
     this.sceneManager = sceneManager;
+    this.maze = maze;
     this.useMakePlaceFormat = false;
     this.uploadedDesign = null;
     this.processedDesign = null;
@@ -38,6 +39,8 @@ export class UI {
       this.generateSphericalSpiral();
     } else if (this.shapeType === "grid") {
       this.generateGrid();
+    } else if (this.shapeType === "maze") {
+      this.generateMaze();
     }
   }
 
@@ -118,12 +121,24 @@ export class UI {
     this.updateCoordinatesList();
   }
 
+  generateMaze() {
+    const length = parseInt(document.getElementById("mazeLength").value);
+    const width = parseInt(document.getElementById("mazeWidth").value);
+    const height = parseInt(document.getElementById("mazeHeight").value);
+    const maxWalls = parseInt(document.getElementById("mazeMaxWalls").value);
+
+    this.maze.generateMaze(length, width, height, maxWalls);
+    this.sceneManager.resetCamera(this.maze.centerPoint);
+    this.updateCoordinatesList();
+  }
+
   updateCoordinatesList() {
     const coordinatesDiv = document.getElementById("coordinates");
-    coordinatesDiv.innerHTML = `<h3>Coordinates (Total #: ${this.wheel.allPoints.length})</h3>`;
+    const points = this.shapeType === "maze" ? this.maze.allPoints : this.wheel.allPoints;
+    coordinatesDiv.innerHTML = `<h3>Coordinates (Total #: ${points.length})</h3>`;
 
     const addCoordinate = (name, point, index) => {
-      if (!point) return; // Add null check
+      if (!point) return;
 
       let x = point.position.x;
       let y = point.position.y;
@@ -144,13 +159,24 @@ export class UI {
       const div = document.createElement("div");
       div.className = "coordinate-item";
       div.innerHTML = `${name}: (${coordStr}) <span class="copy-btn" data-coord="${coordStr}">Copy</span>`;
-      div.addEventListener("mouseenter", () => this.wheel.highlightPoint(index));
-      div.addEventListener("mouseleave", () => this.wheel.resetPointColor(index));
+      div.addEventListener("mouseenter", () => {
+        if (this.shapeType === "maze") {
+          this.maze.highlightPoint(index);
+        } else {
+          this.wheel.highlightPoint(index);
+        }
+      });
+      div.addEventListener("mouseleave", () => {
+        if (this.shapeType === "maze") {
+          this.maze.resetPointColor(index);
+        } else {
+          this.wheel.resetPointColor(index);
+        }
+      });
       coordinatesDiv.appendChild(div);
     };
 
-    // Add coordinates for all points in the wheel
-    this.wheel.allPoints.forEach((point, index) => {
+    points.forEach((point, index) => {
       addCoordinate(`Point ${index + 1}`, point, index);
     });
 
@@ -319,11 +345,13 @@ export class UI {
     const conicalSpiralInputs = document.getElementById("conicalSpiralInputs");
     const sphericalSpiralInputs = document.getElementById("sphericalSpiralInputs");
     const gridInputs = document.getElementById("gridInputs");
+    const mazeInputs = document.getElementById("mazeInputs");
 
     wheelInputs.style.display = this.shapeType === "wheel" ? "block" : "none";
     spiralInputs.style.display = this.shapeType === "spiral" ? "block" : "none";
     conicalSpiralInputs.style.display = this.shapeType === "conicalSpiral" ? "block" : "none";
     sphericalSpiralInputs.style.display = this.shapeType === "sphericalSpiral" ? "block" : "none";
     gridInputs.style.display = this.shapeType === "grid" ? "block" : "none";
+    mazeInputs.style.display = this.shapeType === "maze" ? "block" : "none";
   }
 }
