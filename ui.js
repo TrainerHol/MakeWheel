@@ -120,13 +120,14 @@ export class UI {
     const length = parseInt(document.getElementById("mazeLength").value);
     const width = parseInt(document.getElementById("mazeWidth").value);
     const height = parseInt(document.getElementById("mazeHeight").value);
-    const maxWalls = parseInt(document.getElementById("mazeMaxWalls").value);
+    const dimensionX = parseInt(document.getElementById("mazeDimensionX").value);
+    const dimensionY = parseInt(document.getElementById("mazeDimensionY").value) || dimensionX;
 
-    const points = this.maze.generateMaze(length, width, height, maxWalls);
+    const points = this.maze.generateMaze(length, width, height, dimensionX, dimensionY);
     this.updateCoordinatesList();
 
     const wallCountSpan = document.getElementById("generatedWallCount");
-    wallCountSpan.textContent = `(Generated: ${this.maze.walls.length})`;
+    wallCountSpan.textContent = `Generated Walls: ${this.maze.walls.length}`;
   }
 
   resetCameraToShape() {
