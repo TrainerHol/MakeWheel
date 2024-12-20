@@ -274,7 +274,7 @@ export class UI {
       return;
     }
 
-    if (this.wheel.allPoints.length < 1) {
+    if ((this.shapeType === "maze" && this.maze.allPoints.length < 1) || (this.shapeType !== "maze" && this.wheel.allPoints.length < 1)) {
       alert("Please generate points first.");
       return;
     }
@@ -286,19 +286,29 @@ export class UI {
 
     delete this.processedDesign.transform;
 
-    this.wheel.allPoints.forEach((point, index) => {
+    const points = this.shapeType === "maze" ? this.maze.allPoints : this.wheel.allPoints;
+    points.forEach((point, index) => {
       const newAttachment = {
         ...this.uploadedDesign,
         transform: {
-          location: [point.position.x * 100, point.position.z * 100, point.position.y * 100],
-          rotation: this.uploadedDesign.transform.rotation,
+          location: [point.position.x * 100, point.position.z * 100, point.position.y * 100], // Swap Y/Z for Unreal
+          rotation:
+            this.shapeType === "maze"
+              ? [
+                  this.uploadedDesign.transform.rotation[0],
+                  this.uploadedDesign.transform.rotation[1],
+                  this.uploadedDesign.transform.rotation[2] + (90 - point.rotation.y * (180 / Math.PI)), // Adjust for Unreal's coordinate system
+                ]
+              : this.uploadedDesign.transform.rotation,
           scale: this.uploadedDesign.transform.scale,
         },
       };
       delete newAttachment.attachments;
       this.processedDesign.attachments.push(newAttachment);
 
-      this.processAttachments(this.uploadedDesign, newAttachment, point);
+      if (this.shapeType !== "maze") {
+        this.processAttachments(this.uploadedDesign, newAttachment, point);
+      }
     });
 
     console.log("Design processed successfully");

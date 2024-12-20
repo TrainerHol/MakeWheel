@@ -126,31 +126,46 @@ export class Maze {
       }
     }
 
-    // Create outer walls
-    // North wall
-    walls.push({
-      position: [offsetX + mazeWidth / 2, offsetY, offsetZ],
-      rotation: Math.PI / 2,
-      dimensions: [itemWidth, itemHeight, mazeWidth],
-    });
-    // South wall
-    walls.push({
-      position: [offsetX + mazeWidth / 2, offsetY, offsetZ + mazeDepth],
-      rotation: Math.PI / 2,
-      dimensions: [itemWidth, itemHeight, mazeWidth],
-    });
-    // West wall
-    walls.push({
-      position: [offsetX, offsetY, offsetZ + mazeDepth / 2],
-      rotation: 0,
-      dimensions: [itemWidth, itemHeight, mazeDepth],
-    });
-    // East wall
-    walls.push({
-      position: [offsetX + mazeWidth, offsetY, offsetZ + mazeDepth / 2],
-      rotation: 0,
-      dimensions: [itemWidth, itemHeight, mazeDepth],
-    });
+    // Create outer walls as individual segments
+    // North wall segments
+    for (let x = 0; x < width; x++) {
+      const worldX = x * itemLength + offsetX + itemLength / 2;
+      walls.push({
+        position: [worldX, offsetY, offsetZ],
+        rotation: Math.PI / 2,
+        dimensions: [itemWidth, itemHeight, itemLength],
+      });
+    }
+
+    // South wall segments
+    for (let x = 0; x < width; x++) {
+      const worldX = x * itemLength + offsetX + itemLength / 2;
+      walls.push({
+        position: [worldX, offsetY, offsetZ + mazeDepth],
+        rotation: Math.PI / 2,
+        dimensions: [itemWidth, itemHeight, itemLength],
+      });
+    }
+
+    // West wall segments
+    for (let y = 0; y < height; y++) {
+      const worldZ = y * itemLength + offsetZ + itemLength / 2;
+      walls.push({
+        position: [offsetX, offsetY, worldZ],
+        rotation: 0,
+        dimensions: [itemWidth, itemHeight, itemLength],
+      });
+    }
+
+    // East wall segments
+    for (let y = 0; y < height; y++) {
+      const worldZ = y * itemLength + offsetZ + itemLength / 2;
+      walls.push({
+        position: [offsetX + mazeWidth, offsetY, worldZ],
+        rotation: 0,
+        dimensions: [itemWidth, itemHeight, itemLength],
+      });
+    }
 
     // Create wall meshes
     walls.forEach(({ position: [x, y, z], rotation, dimensions: [width, height, length] }) => {
