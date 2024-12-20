@@ -83,6 +83,21 @@ export class Maze {
     const offsetZ = -mazeDepth / 2;
     const offsetY = itemHeight / 2;
 
+    // Helper function to create a unique key for a wall
+    const getWallKey = (position, rotation) => {
+      return `${position[0].toFixed(2)},${position[1].toFixed(2)},${position[2].toFixed(2)},${rotation.toFixed(2)}`;
+    };
+
+    // Use a Map to store unique walls
+    const uniqueWalls = new Map();
+
+    const addUniqueWall = (position, rotation, dimensions) => {
+      const key = getWallKey(position, rotation);
+      if (!uniqueWalls.has(key)) {
+        uniqueWalls.set(key, { position, rotation, dimensions });
+      }
+    };
+
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const cell = this.grid[y][x];
@@ -96,32 +111,16 @@ export class Maze {
         const hasWest = cell.connections.has(this.grid[y]?.[x - 1]);
 
         if (!hasNorth && y > 0) {
-          walls.push({
-            position: [worldX, offsetY, worldZ - itemLength / 2],
-            rotation: Math.PI / 2,
-            dimensions: [itemWidth, itemHeight, itemLength],
-          });
+          addUniqueWall([worldX, offsetY, worldZ - itemLength / 2], Math.PI / 2, [itemWidth, itemHeight, itemLength]);
         }
         if (!hasEast && x < width - 1) {
-          walls.push({
-            position: [worldX + itemLength / 2, offsetY, worldZ],
-            rotation: 0,
-            dimensions: [itemWidth, itemHeight, itemLength],
-          });
+          addUniqueWall([worldX + itemLength / 2, offsetY, worldZ], 0, [itemWidth, itemHeight, itemLength]);
         }
         if (!hasSouth && y < height - 1) {
-          walls.push({
-            position: [worldX, offsetY, worldZ + itemLength / 2],
-            rotation: Math.PI / 2,
-            dimensions: [itemWidth, itemHeight, itemLength],
-          });
+          addUniqueWall([worldX, offsetY, worldZ + itemLength / 2], Math.PI / 2, [itemWidth, itemHeight, itemLength]);
         }
         if (!hasWest && x > 0) {
-          walls.push({
-            position: [worldX - itemLength / 2, offsetY, worldZ],
-            rotation: 0,
-            dimensions: [itemWidth, itemHeight, itemLength],
-          });
+          addUniqueWall([worldX - itemLength / 2, offsetY, worldZ], 0, [itemWidth, itemHeight, itemLength]);
         }
       }
     }
@@ -130,45 +129,29 @@ export class Maze {
     // North wall segments
     for (let x = 0; x < width; x++) {
       const worldX = x * itemLength + offsetX + itemLength / 2;
-      walls.push({
-        position: [worldX, offsetY, offsetZ],
-        rotation: Math.PI / 2,
-        dimensions: [itemWidth, itemHeight, itemLength],
-      });
+      addUniqueWall([worldX, offsetY, offsetZ], Math.PI / 2, [itemWidth, itemHeight, itemLength]);
     }
 
     // South wall segments
     for (let x = 0; x < width; x++) {
       const worldX = x * itemLength + offsetX + itemLength / 2;
-      walls.push({
-        position: [worldX, offsetY, offsetZ + mazeDepth],
-        rotation: Math.PI / 2,
-        dimensions: [itemWidth, itemHeight, itemLength],
-      });
+      addUniqueWall([worldX, offsetY, offsetZ + mazeDepth], Math.PI / 2, [itemWidth, itemHeight, itemLength]);
     }
 
     // West wall segments
     for (let y = 0; y < height; y++) {
       const worldZ = y * itemLength + offsetZ + itemLength / 2;
-      walls.push({
-        position: [offsetX, offsetY, worldZ],
-        rotation: 0,
-        dimensions: [itemWidth, itemHeight, itemLength],
-      });
+      addUniqueWall([offsetX, offsetY, worldZ], 0, [itemWidth, itemHeight, itemLength]);
     }
 
     // East wall segments
     for (let y = 0; y < height; y++) {
       const worldZ = y * itemLength + offsetZ + itemLength / 2;
-      walls.push({
-        position: [offsetX + mazeWidth, offsetY, worldZ],
-        rotation: 0,
-        dimensions: [itemWidth, itemHeight, itemLength],
-      });
+      addUniqueWall([offsetX + mazeWidth, offsetY, worldZ], 0, [itemWidth, itemHeight, itemLength]);
     }
 
-    // Create wall meshes
-    walls.forEach(({ position: [x, y, z], rotation, dimensions: [width, height, length] }) => {
+    // Create wall meshes from unique walls
+    uniqueWalls.forEach(({ position: [x, y, z], rotation, dimensions: [width, height, length] }) => {
       const wall = this.createWall(new THREE.Vector3(x, y, z), width, height, length, rotation);
       this.walls.push(wall);
       this.allPoints.push(wall);
@@ -179,10 +162,18 @@ export class Maze {
     const centerSphere = this.createSphere(this.centerPoint, 0x00ff00);
     this.scene.add(centerSphere);
 
+    // Deduplicate points at the end
+    const uniquePoints = new Map();
+    this.allPoints.forEach((point) => {
+      const key = `${point.position.x.toFixed(2)},${point.position.y.toFixed(2)},${point.position.z.toFixed(2)}`;
+      uniquePoints.set(key, point);
+    });
+    this.allPoints = Array.from(uniquePoints.values());
+
     // Update wall count display
     const wallCountSpan = document.getElementById("generatedWallCount");
     if (wallCountSpan) {
-      wallCountSpan.textContent = `Generated Walls: ${this.walls.length}`;
+      wallCountSpan.textContent = `Generated Walls: ${this.walls.length} (Unique Points: ${this.allPoints.length})`;
     }
 
     return this.allPoints;
