@@ -11,7 +11,7 @@ export class UI {
 
   init() {
     document.getElementById("generateBtn").addEventListener("click", () => this.generateShape());
-    document.getElementById("resetCamera").addEventListener("click", () => this.sceneManager.resetCamera(this.wheel.centerPoint));
+    document.getElementById("resetCamera").addEventListener("click", () => this.resetCameraToShape());
     document.getElementById("makePlaceFormat").addEventListener("change", (e) => {
       this.useMakePlaceFormat = e.target.checked;
       this.updateCoordinatesList();
@@ -52,7 +52,6 @@ export class UI {
     const planeAngle = parseFloat(document.getElementById("planeAngle").value);
 
     this.wheel.generatePoints(point1Coords, point2Coords, repetitions, segments, planeAngle);
-    this.sceneManager.resetCamera(this.wheel.centerPoint);
     this.updateCoordinatesList();
   }
 
@@ -65,7 +64,6 @@ export class UI {
     const planeAngle = parseFloat(document.getElementById("spiralPlaneAngle").value);
 
     this.wheel.generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle);
-    this.sceneManager.resetCamera(this.wheel.centerPoint);
     this.updateCoordinatesList();
   }
 
@@ -80,7 +78,6 @@ export class UI {
     const startFromCenter = document.getElementById("conicalSpiralStartPoint").value === "center";
 
     this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter);
-    this.sceneManager.resetCamera(this.wheel.centerPoint);
     this.updateCoordinatesList();
   }
 
@@ -94,7 +91,6 @@ export class UI {
     const endAngle = parseFloat(document.getElementById("sphericalSpiralEndAngle").value);
 
     this.wheel.generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle);
-    this.sceneManager.resetCamera(this.wheel.centerPoint);
     this.updateCoordinatesList();
   }
 
@@ -117,7 +113,6 @@ export class UI {
 
     this.wheel.generateGrid(centerPoint, parseInt(rows.value) || 3, parseInt(columns.value) || 3, parseFloat(spacing.value) || 4, parseFloat(stepAmount.value) || 2, parseInt(floors.value) || 1);
 
-    this.sceneManager.resetCamera(this.wheel.centerPoint);
     this.updateCoordinatesList();
   }
 
@@ -127,9 +122,19 @@ export class UI {
     const height = parseInt(document.getElementById("mazeHeight").value);
     const maxWalls = parseInt(document.getElementById("mazeMaxWalls").value);
 
-    this.maze.generateMaze(length, width, height, maxWalls);
-    this.sceneManager.resetCamera(this.maze.centerPoint);
+    const points = this.maze.generateMaze(length, width, height, maxWalls);
     this.updateCoordinatesList();
+
+    const wallCountSpan = document.getElementById("generatedWallCount");
+    wallCountSpan.textContent = `(Generated: ${this.maze.walls.length})`;
+  }
+
+  resetCameraToShape() {
+    const centerPoint = new THREE.Vector3(0, 0, 0);
+    if (this.shapeType !== "maze" && this.wheel.centerPoint) {
+      centerPoint.copy(this.wheel.centerPoint);
+    }
+    this.sceneManager.resetCamera(centerPoint);
   }
 
   updateCoordinatesList() {
@@ -340,6 +345,10 @@ export class UI {
   }
 
   updateUIForShape() {
+    // Clear both wheel and maze objects when switching shapes
+    this.wheel.clearPoints();
+    this.maze.clearMaze();
+
     const wheelInputs = document.getElementById("wheelInputs");
     const spiralInputs = document.getElementById("spiralInputs");
     const conicalSpiralInputs = document.getElementById("conicalSpiralInputs");
@@ -353,5 +362,8 @@ export class UI {
     sphericalSpiralInputs.style.display = this.shapeType === "sphericalSpiral" ? "block" : "none";
     gridInputs.style.display = this.shapeType === "grid" ? "block" : "none";
     mazeInputs.style.display = this.shapeType === "maze" ? "block" : "none";
+
+    // Clear the coordinates list
+    document.getElementById("coordinates").innerHTML = "";
   }
 }

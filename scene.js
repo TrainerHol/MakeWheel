@@ -62,9 +62,9 @@ export class SceneManager {
 
   resetCamera(centerPoint) {
     if (centerPoint) {
-      const midpoint = centerPoint.position;
-      this.camera.position.set(midpoint.x, midpoint.y, midpoint.z + 100);
-      this.camera.lookAt(midpoint);
+      const position = centerPoint.position || centerPoint;
+      this.camera.position.set(position.x, position.y, position.z + 100);
+      this.camera.lookAt(position);
     } else {
       this.camera.position.set(0, 0, 100);
       this.camera.lookAt(this.scene.position);

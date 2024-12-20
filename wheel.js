@@ -335,13 +335,35 @@ export class Wheel {
   }
 
   clearPoints() {
-    this.allPoints.forEach((point) => this.scene.remove(point));
-    this.lines.forEach((line) => this.scene.remove(line)); // Remove all lines
-    this.point1 = this.point2 = this.centerPoint = null;
+    // Remove all objects from the scene and arrays
+    this.allPoints.forEach((point) => {
+      if (point.children.length > 0) {
+        // Remove any child objects (like edges)
+        point.children.forEach((child) => point.remove(child));
+      }
+      this.scene.remove(point);
+    });
+    this.lines.forEach((line) => this.scene.remove(line));
+
+    // Explicitly remove point1, point2, and centerPoint from scene
+    if (this.point1) {
+      this.scene.remove(this.point1);
+      this.point1 = null;
+    }
+    if (this.point2) {
+      this.scene.remove(this.point2);
+      this.point2 = null;
+    }
+    if (this.centerPoint) {
+      this.scene.remove(this.centerPoint);
+      this.centerPoint = null;
+    }
+
+    // Clear arrays
     this.pairPoints = [];
     this.segmentPoints = [];
     this.allPoints = [];
-    this.lines = []; // Clear the lines array
+    this.lines = [];
   }
 
   highlightPoint(index) {

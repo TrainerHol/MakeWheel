@@ -255,16 +255,37 @@ export class Maze {
     const material = new THREE.MeshPhongMaterial({ color });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.copy(position);
+    sphere.name = "centerSphere";
     return sphere;
   }
 
   clearMaze() {
-    this.walls.forEach((wall) => this.scene.remove(wall));
-    this.allPoints.forEach((point) => this.scene.remove(point));
+    // Remove all walls and their children (like edges)
+    this.walls.forEach((wall) => {
+      if (wall.children.length > 0) {
+        wall.children.forEach((child) => wall.remove(child));
+      }
+      this.scene.remove(wall);
+    });
+
+    // Remove all points
+    this.allPoints.forEach((point) => {
+      if (point.children.length > 0) {
+        point.children.forEach((child) => point.remove(child));
+      }
+      this.scene.remove(point);
+    });
+
+    // Clear arrays
     this.walls = [];
     this.allPoints = [];
+
+    // Remove center point if it exists
     if (this.centerPoint) {
-      this.scene.remove(this.centerPoint);
+      const centerSphere = this.scene.getObjectByName("centerSphere");
+      if (centerSphere) {
+        this.scene.remove(centerSphere);
+      }
       this.centerPoint = null;
     }
   }
