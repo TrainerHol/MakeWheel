@@ -85,7 +85,7 @@ export class Maze {
 
     // Helper function to create a unique key for a wall
     const getWallKey = (position, rotation) => {
-      return `${position[0].toFixed(2)},${position[1].toFixed(2)},${position[2].toFixed(2)},${rotation.toFixed(2)}`;
+      return `${position[0].toFixed(4)},${position[1].toFixed(4)},${position[2].toFixed(4)},${rotation.toFixed(4)}`;
     };
 
     // Use a Map to store unique walls
@@ -165,7 +165,7 @@ export class Maze {
     // Deduplicate points at the end
     const uniquePoints = new Map();
     this.allPoints.forEach((point) => {
-      const key = `${point.position.x.toFixed(2)},${point.position.y.toFixed(2)},${point.position.z.toFixed(2)}`;
+      const key = `${point.position.x.toFixed(4)},${point.position.y.toFixed(4)},${point.position.z.toFixed(4)}`;
       uniquePoints.set(key, point);
     });
     this.allPoints = Array.from(uniquePoints.values());

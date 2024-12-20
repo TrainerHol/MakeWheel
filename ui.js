@@ -117,7 +117,7 @@ export class UI {
   }
 
   generateMaze() {
-    const length = parseInt(document.getElementById("mazeLength").value);
+    const length = parseFloat(document.getElementById("mazeLength").value);
     const width = parseInt(document.getElementById("mazeWidth").value);
     const height = parseInt(document.getElementById("mazeHeight").value);
     const dimensionX = parseInt(document.getElementById("mazeDimensionX").value);
