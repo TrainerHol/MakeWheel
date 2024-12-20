@@ -294,7 +294,7 @@ export class UI {
           location: [point.position.x * 100, point.position.z * 100, point.position.y * 100], // Swap Y/Z for Unreal
           rotation:
             this.shapeType === "maze"
-              ? [0, 0, Math.sin(point.rotation.y / 2), Math.cos(point.rotation.y / 2)] // Convert to quaternion
+              ? [0, 0, Math.sin((point.rotation.y + Math.PI / 2) / 2), Math.cos((point.rotation.y + Math.PI / 2) / 2)] // Add PI/2 to align with MakePlace
               : this.uploadedDesign.transform.rotation,
           scale: this.uploadedDesign.transform.scale,
         },
