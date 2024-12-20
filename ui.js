@@ -294,11 +294,7 @@ export class UI {
           location: [point.position.x * 100, point.position.z * 100, point.position.y * 100], // Swap Y/Z for Unreal
           rotation:
             this.shapeType === "maze"
-              ? [
-                  this.uploadedDesign.transform.rotation[0],
-                  this.uploadedDesign.transform.rotation[1],
-                  this.uploadedDesign.transform.rotation[2] + (90 - point.rotation.y * (180 / Math.PI)), // Adjust for Unreal's coordinate system
-                ]
+              ? [0, 0, Math.sin(point.rotation.y / 2), Math.cos(point.rotation.y / 2)] // Convert to quaternion
               : this.uploadedDesign.transform.rotation,
           scale: this.uploadedDesign.transform.scale,
         },
@@ -306,9 +302,8 @@ export class UI {
       delete newAttachment.attachments;
       this.processedDesign.attachments.push(newAttachment);
 
-      if (this.shapeType !== "maze") {
-        this.processAttachments(this.uploadedDesign, newAttachment, point);
-      }
+      // Process attachments for all shapes
+      this.processAttachments(this.uploadedDesign, newAttachment, point);
     });
 
     console.log("Design processed successfully");
@@ -324,10 +319,33 @@ export class UI {
         try {
           const newAttachment = { ...attachment };
           const relativePosition = [attachment.transform.location[0] - originalDesign.transform.location[0], attachment.transform.location[1] - originalDesign.transform.location[1], attachment.transform.location[2] - originalDesign.transform.location[2]];
-          newAttachment.transform = {
-            ...attachment.transform,
-            location: [referencePoint.position.x * 100 + relativePosition[0], referencePoint.position.z * 100 + relativePosition[1], referencePoint.position.y * 100 + relativePosition[2]],
-          };
+
+          if (this.shapeType === "maze") {
+            // Rotate the relative position by the wall's rotation
+            const cos = Math.cos(referencePoint.rotation.y);
+            const sin = Math.sin(referencePoint.rotation.y);
+            const rotatedX = relativePosition[0] * cos - relativePosition[1] * sin;
+            const rotatedY = relativePosition[0] * sin + relativePosition[1] * cos;
+
+            // Create rotation quaternion for the attachment
+            const [x, y, z, w] = attachment.transform.rotation;
+            const angle = referencePoint.rotation.y;
+            const s = Math.sin(angle / 2);
+            const c = Math.cos(angle / 2);
+            const rotatedRotation = [x * c + y * s, -x * s + y * c, z * c + w * s, -z * s + w * c];
+
+            newAttachment.transform = {
+              ...attachment.transform,
+              location: [referencePoint.position.x * 100 + rotatedX, referencePoint.position.z * 100 + rotatedY, referencePoint.position.y * 100 + relativePosition[2]],
+              rotation: rotatedRotation,
+            };
+          } else {
+            newAttachment.transform = {
+              ...attachment.transform,
+              location: [referencePoint.position.x * 100 + relativePosition[0], referencePoint.position.z * 100 + relativePosition[1], referencePoint.position.y * 100 + relativePosition[2]],
+              rotation: attachment.transform.rotation,
+            };
+          }
           targetDesign.attachments.push(newAttachment);
         } catch (error) {
           console.error("Error processing attachment:", error);
