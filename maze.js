@@ -45,30 +45,29 @@ export class Maze {
     // Generate maze using DFS with wall removal
     this.generatePath(grid, startX, startY);
 
-    // Create entrance and exit on random sides
+    // Create entrance on a random side
     const sides = ["north", "south", "east", "west"];
-    const [entranceSide, exitSide] = this.getRandomDifferentSides(sides);
-
+    const entranceSide = sides[Math.floor(Math.random() * sides.length)];
     const entrance = this.getRandomPositionOnSide(entranceSide, gridWidth, gridHeight);
-    let exit;
-    do {
-      exit = this.getRandomPositionOnSide(exitSide, gridWidth, gridHeight);
-    } while (this.arePositionsOpposite(entrance, exit, gridWidth, gridHeight));
 
-    // Remove walls for entrance and exit
+    // Remove wall for entrance
     if (entrance.side === "west") grid[entrance.y][entrance.x].walls.west = false;
     else if (entrance.side === "east") grid[entrance.y][entrance.x].walls.east = false;
     else if (entrance.side === "north") grid[entrance.y][entrance.x].walls.north = false;
     else if (entrance.side === "south") grid[entrance.y][entrance.x].walls.south = false;
 
+    // Connect entrance to the maze
+    this.connectCell(grid, entrance.x, entrance.y);
+
+    // Find the cell that creates the longest path from the entrance
+    const { position: exit, distance } = this.findLongestPath(grid, entrance);
+    console.log(`Found exit with path length: ${distance}`);
+
+    // Remove wall for exit
     if (exit.side === "west") grid[exit.y][exit.x].walls.west = false;
     else if (exit.side === "east") grid[exit.y][exit.x].walls.east = false;
     else if (exit.side === "north") grid[exit.y][exit.x].walls.north = false;
     else if (exit.side === "south") grid[exit.y][exit.x].walls.south = false;
-
-    // Connect entrance and exit to their neighbors
-    this.connectCell(grid, entrance.x, entrance.y);
-    this.connectCell(grid, exit.x, exit.y);
 
     // Convert grid to walls
     const walls = [];
@@ -282,15 +281,6 @@ export class Maze {
     }
   }
 
-  getRandomDifferentSides(sides) {
-    const firstIndex = Math.floor(Math.random() * sides.length);
-    const firstSide = sides[firstIndex];
-    sides.splice(firstIndex, 1);
-    const secondIndex = Math.floor(Math.random() * sides.length);
-    const secondSide = sides[secondIndex];
-    return [firstSide, secondSide];
-  }
-
   getRandomPositionOnSide(side, width, height) {
     switch (side) {
       case "north":
@@ -304,12 +294,67 @@ export class Maze {
     }
   }
 
-  arePositionsOpposite(pos1, pos2, width, height) {
-    // Prevent entrance and exit from being directly opposite
-    if (pos1.side === "north" && pos2.side === "south" && pos1.x === pos2.x) return true;
-    if (pos1.side === "south" && pos2.side === "north" && pos1.x === pos2.x) return true;
-    if (pos1.side === "east" && pos2.side === "west" && pos1.y === pos2.y) return true;
-    if (pos1.side === "west" && pos2.side === "east" && pos1.y === pos2.y) return true;
-    return false;
+  findLongestPath(grid, entrance) {
+    const distances = Array(grid.length)
+      .fill()
+      .map(() => Array(grid[0].length).fill(-1));
+    const queue = [[entrance.x, entrance.y, 0]];
+    let maxDistance = 0;
+    let farthestCell = null;
+
+    // BFS to find distances from entrance
+    distances[entrance.y][entrance.x] = 0;
+    while (queue.length > 0) {
+      const [x, y, distance] = queue.shift();
+
+      // Check all four directions
+      const directions = [
+        { dx: 0, dy: -1, wall: "north" },
+        { dx: 1, dy: 0, wall: "east" },
+        { dx: 0, dy: 1, wall: "south" },
+        { dx: -1, dy: 0, wall: "west" },
+      ];
+
+      for (const { dx, dy, wall } of directions) {
+        const newX = x + dx;
+        const newY = y + dy;
+
+        if (this.isValidCell(grid, newX, newY) && distances[newY][newX] === -1) {
+          // Check if there's a path (no wall) between cells
+          const canMove = (dx === 1 && !grid[y][x].walls.east) || (dx === -1 && !grid[y][x].walls.west) || (dy === 1 && !grid[y][x].walls.south) || (dy === -1 && !grid[y][x].walls.north);
+
+          if (canMove) {
+            distances[newY][newX] = distance + 1;
+            queue.push([newX, newY, distance + 1]);
+
+            // Check if this could be a valid exit position
+            if (distance + 1 > maxDistance && this.isValidExitPosition(newX, newY, grid)) {
+              maxDistance = distance + 1;
+              farthestCell = { x: newX, y: newY };
+            }
+          }
+        }
+      }
+    }
+
+    // Determine which side the exit should be on
+    const side = this.determineExitSide(farthestCell.x, farthestCell.y, grid);
+    return {
+      position: { ...farthestCell, side },
+      distance: maxDistance,
+    };
+  }
+
+  isValidExitPosition(x, y, grid) {
+    // Position is valid if it's on the edge of the maze
+    return x === 0 || x === grid[0].length - 1 || y === 0 || y === grid.length - 1;
+  }
+
+  determineExitSide(x, y, grid) {
+    if (x === 0) return "west";
+    if (x === grid[0].length - 1) return "east";
+    if (y === 0) return "north";
+    if (y === grid.length - 1) return "south";
+    return "west"; // fallback, shouldn't happen
   }
 }
