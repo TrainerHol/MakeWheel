@@ -366,6 +366,40 @@ export class Wheel {
     this.lines = [];
   }
 
+  generateCylinderSpiral(center, radius, height, segments, angleDegrees, direction) {
+    this.clearPoints();
+    this.shapeType = "cylinderSpiral";
+
+    // Display the actual center point
+    this.centerPoint = this.createSphere(center, 0x00ff00);
+
+    if (segments <= 0) { // Should be handled by UI (min=1), but good to check
+        return;
+    }
+
+    const heightPerSegmentStep = height / segments;
+    const totalRotationAngleRad = THREE.MathUtils.degToRad(angleDegrees);
+    const angleIncrementPerSegmentRad = totalRotationAngleRad / segments;
+
+    for (let i = 0; i <= segments; i++) {
+      const currentHeightOffset = i * heightPerSegmentStep;
+      const currentY = center.y + currentHeightOffset;
+
+      let currentRotation = i * angleIncrementPerSegmentRad;
+      if (direction === "clockwise") {
+        currentRotation = -currentRotation;
+      }
+
+      const x = center.x + radius * Math.cos(currentRotation);
+      const z = center.z + radius * Math.sin(currentRotation);
+
+      const pointPosition = new THREE.Vector3(x, currentY, z);
+      const sphere = this.createSphere(pointPosition, 0xff0000, 0.2); // Smaller sphere size
+      this.allPoints.push(sphere);
+      // this.scene.add(sphere) is handled by createSphere
+    }
+  }
+
   highlightPoint(index) {
     if (this.allPoints[index]) {
       this.allPoints[index].material.color.setHex(0xdb63ff);
