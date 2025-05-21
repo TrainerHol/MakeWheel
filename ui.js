@@ -41,6 +41,8 @@ export class UI {
       this.generateGrid();
     } else if (this.shapeType === "maze") {
       this.generateMaze();
+    } else if (this.shapeType === "cylinderSpiral") {
+      this.generateCylinderSpiralUI();
     }
   }
 
@@ -128,6 +130,22 @@ export class UI {
 
     const wallCountSpan = document.getElementById("generatedWallCount");
     wallCountSpan.textContent = `Generated Walls: ${this.maze.walls.length}`;
+  }
+
+  generateCylinderSpiralUI() {
+    const centerX = parseFloat(document.getElementById("cylinderSpiralCenterX").value);
+    const centerY = parseFloat(document.getElementById("cylinderSpiralCenterY").value);
+    const centerZ = parseFloat(document.getElementById("cylinderSpiralCenterZ").value);
+    const radius = parseFloat(document.getElementById("cylinderSpiralRadius").value);
+    const height = parseFloat(document.getElementById("cylinderSpiralHeight").value);
+    const segments = parseInt(document.getElementById("cylinderSpiralSegments").value);
+    const angle = parseFloat(document.getElementById("cylinderSpiralAngle").value);
+    const direction = document.getElementById("cylinderSpiralDirection").value;
+
+    const centerPoint = new THREE.Vector3(centerX, centerY, centerZ);
+
+    this.wheel.generateCylinderSpiral(centerPoint, radius, height, segments, angle, direction);
+    this.updateCoordinatesList();
   }
 
   resetCameraToShape() {
@@ -384,6 +402,7 @@ export class UI {
     const sphericalSpiralInputs = document.getElementById("sphericalSpiralInputs");
     const gridInputs = document.getElementById("gridInputs");
     const mazeInputs = document.getElementById("mazeInputs");
+    const cylinderSpiralInputs = document.getElementById("cylinderSpiralInputs");
 
     wheelInputs.style.display = this.shapeType === "wheel" ? "block" : "none";
     spiralInputs.style.display = this.shapeType === "spiral" ? "block" : "none";
@@ -391,6 +410,7 @@ export class UI {
     sphericalSpiralInputs.style.display = this.shapeType === "sphericalSpiral" ? "block" : "none";
     gridInputs.style.display = this.shapeType === "grid" ? "block" : "none";
     mazeInputs.style.display = this.shapeType === "maze" ? "block" : "none";
+    cylinderSpiralInputs.style.display = this.shapeType === "cylinderSpiral" ? "block" : "none";
 
     // Clear the coordinates list
     document.getElementById("coordinates").innerHTML = "";
