@@ -366,6 +366,49 @@ export class Wheel {
     this.lines = [];
   }
 
+  generateCylinderSpiral(center, radius, height, segments, numTurns, startAngleDegrees, endAngleDegrees, direction) {
+    this.clearPoints();
+    this.shapeType = "cylinderSpiral";
+
+    // Display the actual center point
+    this.centerPoint = this.createSphere(center, 0x00ff00);
+
+    if (segments <= 0) { // Should be handled by UI (min=1), but good to check
+        return;
+    }
+
+    for (let i = 0; i <= segments; i++) {
+      const progress = i / segments;
+
+      // Calculate Y position
+      const currentY = center.y + height * progress;
+
+      // Calculate base angle
+      const currentBaseAngleDeg = startAngleDegrees + (endAngleDegrees - startAngleDegrees) * progress;
+
+      // Calculate turn angle
+      const currentTurnAngleDeg = numTurns * 360 * progress;
+
+      // Total angle
+      const totalAngleDeg = currentBaseAngleDeg + currentTurnAngleDeg;
+      let totalAngleRad = THREE.MathUtils.degToRad(totalAngleDeg);
+
+      // Handle direction
+      if (direction === "clockwise") {
+        totalAngleRad = -totalAngleRad;
+      }
+
+      // Calculate X and Z positions
+      const x = center.x + radius * Math.cos(totalAngleRad);
+      const z = center.z + radius * Math.sin(totalAngleRad);
+
+      const pointPosition = new THREE.Vector3(x, currentY, z);
+      const sphere = this.createSphere(pointPosition, 0xff0000, 0.2); // Smaller sphere size
+      this.allPoints.push(sphere);
+      // this.scene.add(sphere) is handled by createSphere
+    }
+  }
+
   highlightPoint(index) {
     if (this.allPoints[index]) {
       this.allPoints[index].material.color.setHex(0xdb63ff);
