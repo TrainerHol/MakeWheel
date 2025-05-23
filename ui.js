@@ -64,8 +64,9 @@ export class UI {
     const segments = parseInt(document.getElementById("spiralSegments").value);
     const turns = parseFloat(document.getElementById("spiralTurns").value);
     const planeAngle = parseFloat(document.getElementById("spiralPlaneAngle").value);
+    const planeAxis = document.getElementById("spiralPlaneAxis").value;
 
-    this.wheel.generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle);
+    this.wheel.generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle, planeAxis);
     this.updateCoordinatesList();
   }
 
@@ -78,8 +79,10 @@ export class UI {
     const isUpright = document.getElementById("conicalSpiralOrientation").value === "upright";
     const height = parseFloat(document.getElementById("conicalSpiralHeight").value);
     const startFromCenter = document.getElementById("conicalSpiralStartPoint").value === "center";
+    const planeAngle = parseFloat(document.getElementById("conicalSpiralPlaneAngle").value);
+    const planeAxis = document.getElementById("conicalSpiralPlaneAxis").value;
 
-    this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter);
+    this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter, planeAngle, planeAxis);
     this.updateCoordinatesList();
   }
 
@@ -91,8 +94,10 @@ export class UI {
     const turns = parseFloat(document.getElementById("sphericalSpiralTurns").value);
     const startAngle = parseFloat(document.getElementById("sphericalSpiralStartAngle").value);
     const endAngle = parseFloat(document.getElementById("sphericalSpiralEndAngle").value);
+    const planeAngle = parseFloat(document.getElementById("sphericalSpiralPlaneAngle").value);
+    const planeAxis = document.getElementById("sphericalSpiralPlaneAxis").value;
 
-    this.wheel.generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle);
+    this.wheel.generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle, planeAngle, planeAxis);
     this.updateCoordinatesList();
   }
 
@@ -139,12 +144,14 @@ export class UI {
     const radius = parseFloat(document.getElementById("cylinderSpiralRadius").value);
     const height = parseFloat(document.getElementById("cylinderSpiralHeight").value);
     const segments = parseInt(document.getElementById("cylinderSpiralSegments").value);
-    const angle = parseFloat(document.getElementById("cylinderSpiralAngle").value);
+    const turns = parseFloat(document.getElementById("cylinderSpiralTurns").value);
     const direction = document.getElementById("cylinderSpiralDirection").value;
+    const planeAngle = parseFloat(document.getElementById("cylinderSpiralPlaneAngle").value);
+    const planeAxis = document.getElementById("cylinderSpiralPlaneAxis").value;
 
     const centerPoint = new THREE.Vector3(centerX, centerY, centerZ);
 
-    this.wheel.generateCylinderSpiral(centerPoint, radius, height, segments, angle, direction);
+    this.wheel.generateCylinderSpiral(centerPoint, radius, height, segments, turns, direction, planeAngle, planeAxis);
     this.updateCoordinatesList();
   }
 

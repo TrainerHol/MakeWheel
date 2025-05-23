@@ -56,7 +56,7 @@ export class Wheel {
     }
   }
 
-  generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle) {
+  generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle = 0, planeAxis = "x") {
     this.clearPoints();
     this.shapeType = "spiral";
 
@@ -71,40 +71,37 @@ export class Wheel {
     const a = startRadius / (turns * 2 * Math.PI); // Spiral constant
     const maxTheta = turns * 2 * Math.PI;
 
-    // Calculate the rotation axis and matrix
-    const axis = new THREE.Vector3().subVectors(startPoint, centerPoint).normalize();
-    const rotationMatrix = new THREE.Matrix4().makeRotationAxis(axis, THREE.MathUtils.degToRad(planeAngle));
+    // Calculate the initial angle of the start point relative to center
+    const initialAngle = Math.atan2(startPoint.z - centerPoint.z, startPoint.x - centerPoint.x);
 
-    // Calculate a perpendicular vector to create the spiral plane
-    let perpVector = new THREE.Vector3(0, 1, 0);
-    if (Math.abs(axis.dot(perpVector)) > 0.9) {
-      perpVector.set(1, 0, 0);
-    }
-    perpVector.cross(axis).normalize();
-
+    // Generate spiral points first without plane rotation
+    const spiralPoints = [];
     let currentLength = 0;
     let theta = 0;
 
     while (currentLength < totalLength && theta <= maxTheta) {
       const radius = a * theta;
 
-      // Create point in the XZ plane
-      const x = radius * Math.cos(direction === "clockwise" ? -theta : theta);
-      const z = radius * Math.sin(direction === "clockwise" ? -theta : theta);
+      // Create point in the XZ plane relative to center
+      const angle = initialAngle + (direction === "clockwise" ? -theta : theta);
+      const x = centerPoint.x + radius * Math.cos(angle);
+      const z = centerPoint.z + radius * Math.sin(angle);
+      const y = centerPoint.y; // Keep at center height initially
 
-      // Rotate the point around the axis
-      const point = new THREE.Vector3(x, 0, z);
-      point.applyAxisAngle(axis, THREE.MathUtils.degToRad(planeAngle));
-
-      // Translate the point to the correct position
-      point.add(centerPoint);
-
-      const sphere = this.createSphere(point, 0xff0000);
-      this.allPoints.push(sphere);
+      spiralPoints.push(new THREE.Vector3(x, y, z));
 
       currentLength += segmentLength;
       theta = Math.sqrt((currentLength * 2) / a);
     }
+
+    // Apply plane rotation to all points
+    this.applyPlaneRotation(spiralPoints, centerPoint, planeAngle, planeAxis);
+
+    // Create spheres for the rotated points
+    spiralPoints.forEach((point) => {
+      const sphere = this.createSphere(point, 0xff0000);
+      this.allPoints.push(sphere);
+    });
 
     // Ensure at least one point is added to pairPoints and segmentPoints
     if (this.allPoints.length > 0) {
@@ -113,7 +110,7 @@ export class Wheel {
     }
   }
 
-  generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter) {
+  generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter, planeAngle = 0, planeAxis = "x") {
     this.clearPoints();
     this.shapeType = "conicalSpiral";
 
@@ -128,9 +125,11 @@ export class Wheel {
     const totalLength = Math.sqrt(Math.pow(startRadius, 2) + Math.pow(height, 2)) * turns;
     const segmentLength = totalLength / (segments - 1);
 
-    const a = startRadius / (turns * 2 * Math.PI); // Spiral constant
-    const maxTheta = turns * 2 * Math.PI;
+    // Calculate the initial angle of the start point
+    const initialAngle = Math.atan2(startPoint.z - centerPoint.z, startPoint.x - centerPoint.x);
 
+    // Generate spiral points first without plane rotation
+    const spiralPoints = [];
     let currentLength = 0;
     let theta = 0;
 
@@ -140,8 +139,9 @@ export class Wheel {
       const currentHeight = t * height * heightDirection;
 
       // Calculate position relative to the center point
-      const x = centerPoint.x + radius * Math.cos(direction === "clockwise" ? -theta : theta);
-      const z = centerPoint.z + radius * Math.sin(direction === "clockwise" ? -theta : theta);
+      const currentAngle = initialAngle + (direction === "clockwise" ? -theta : theta);
+      const x = centerPoint.x + radius * Math.cos(currentAngle);
+      const z = centerPoint.z + radius * Math.sin(currentAngle);
       let y;
 
       if (startFromCenter) {
@@ -150,18 +150,27 @@ export class Wheel {
         y = startPoint.y + currentHeight;
       }
 
-      const point = new THREE.Vector3(x, y, z);
-      const sphere = this.createSphere(point, 0xff0000);
-      this.allPoints.push(sphere);
+      spiralPoints.push(new THREE.Vector3(x, y, z));
 
       currentLength += segmentLength;
 
       // Increment theta based on the next arc length
-      theta += segmentLength / radius;
+      if (radius > 0) {
+        theta += segmentLength / radius;
+      }
     }
+
+    // Apply plane rotation to all points
+    this.applyPlaneRotation(spiralPoints, centerPoint, planeAngle, planeAxis);
+
+    // Create spheres for the rotated points
+    spiralPoints.forEach((point) => {
+      const sphere = this.createSphere(point, 0xff0000);
+      this.allPoints.push(sphere);
+    });
   }
 
-  generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle) {
+  generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle, planeAngle = 0, planeAxis = "x") {
     this.clearPoints();
     this.shapeType = "sphericalSpiral";
 
@@ -201,6 +210,7 @@ export class Wheel {
     const segmentLength = totalLength / (segments - 1);
     let currentLength = 0;
     let currentIndex = 0;
+    const finalSpiralPoints = [];
 
     for (let i = 0; i < segments; i++) {
       while (currentIndex < spiralPoints.length - 1 && currentLength + spiralPoints[currentIndex].distanceTo(spiralPoints[currentIndex + 1]) < i * segmentLength) {
@@ -218,9 +228,17 @@ export class Wheel {
         point = spiralPoints[currentIndex].clone().add(direction.multiplyScalar(remainingLength));
       }
 
+      finalSpiralPoints.push(point);
+    }
+
+    // Apply plane rotation to all points
+    this.applyPlaneRotation(finalSpiralPoints, centerPoint, planeAngle, planeAxis);
+
+    // Create spheres for the rotated points
+    finalSpiralPoints.forEach((point) => {
       const sphere = this.createSphere(point, 0xff0000);
       this.allPoints.push(sphere);
-    }
+    });
   }
 
   generateGrid(centerPoint, rows = 3, columns = 3, spacing = 4, stepAmount = 2, floors = 1) {
@@ -366,38 +384,97 @@ export class Wheel {
     this.lines = [];
   }
 
-  generateCylinderSpiral(center, radius, height, segments, angleDegrees, direction) {
+  generateCylinderSpiral(center, radius, height, segments, turns, direction, planeAngle = 0, planeAxis = "x") {
     this.clearPoints();
     this.shapeType = "cylinderSpiral";
 
-    // Display the actual center point
+    // Display the center point
     this.centerPoint = this.createSphere(center, 0x00ff00);
 
-    if (segments <= 0) { // Should be handled by UI (min=1), but good to check
-        return;
+    if (segments <= 0) {
+      return;
     }
 
-    const heightPerSegmentStep = height / segments;
-    const totalRotationAngleRad = THREE.MathUtils.degToRad(angleDegrees);
-    const angleIncrementPerSegmentRad = totalRotationAngleRad / segments;
+    // Calculate total spiral length
+    const totalRotationAngle = turns * 2 * Math.PI;
+    const circumferencePerTurn = 2 * Math.PI * radius;
+    const totalCircumference = turns * circumferencePerTurn;
+    const totalSpiralLength = Math.sqrt(Math.pow(totalCircumference, 2) + Math.pow(height, 2));
+
+    // Equal distance between points
+    const segmentLength = totalSpiralLength / segments;
+
+    // Generate spiral points first without plane rotation
+    const spiralPoints = [];
+    let currentLength = 0;
+    let theta = 0;
 
     for (let i = 0; i <= segments; i++) {
-      const currentHeightOffset = i * heightPerSegmentStep;
-      const currentY = center.y + currentHeightOffset;
+      // Calculate height based on the position along the spiral
+      const t = currentLength / totalSpiralLength;
+      const currentY = center.y + t * height;
 
-      let currentRotation = i * angleIncrementPerSegmentRad;
-      if (direction === "clockwise") {
-        currentRotation = -currentRotation;
-      }
+      // Apply direction
+      let currentRotation = direction === "clockwise" ? -theta : theta;
 
+      // Calculate position on the cylinder
       const x = center.x + radius * Math.cos(currentRotation);
       const z = center.z + radius * Math.sin(currentRotation);
 
-      const pointPosition = new THREE.Vector3(x, currentY, z);
-      const sphere = this.createSphere(pointPosition, 0xff0000, 0.2); // Smaller sphere size
-      this.allPoints.push(sphere);
-      // this.scene.add(sphere) is handled by createSphere
+      spiralPoints.push(new THREE.Vector3(x, currentY, z));
+
+      // Calculate next position
+      if (i < segments) {
+        currentLength += segmentLength;
+
+        // Calculate the angle increment for the next segment
+        // This maintains equal spacing along the spiral curve
+        const circumferentialIncrement = segmentLength * (totalCircumference / totalSpiralLength);
+        theta += circumferentialIncrement / radius;
+      }
     }
+
+    // Apply plane rotation to all points
+    this.applyPlaneRotation(spiralPoints, center, planeAngle, planeAxis);
+
+    // Create spheres for the rotated points
+    spiralPoints.forEach((point) => {
+      const sphere = this.createSphere(point, 0xff0000);
+      this.allPoints.push(sphere);
+    });
+  }
+
+  // Helper method to apply plane rotation to an array of points
+  applyPlaneRotation(points, centerPoint, planeAngle, planeAxis) {
+    if (planeAngle === 0) return;
+
+    const rotationMatrix = new THREE.Matrix4();
+    const angleRad = THREE.MathUtils.degToRad(planeAngle);
+
+    // Create rotation matrix based on selected axis
+    switch (planeAxis) {
+      case "x":
+        rotationMatrix.makeRotationX(angleRad);
+        break;
+      case "y":
+        rotationMatrix.makeRotationY(angleRad);
+        break;
+      case "z":
+        rotationMatrix.makeRotationZ(angleRad);
+        break;
+      default:
+        rotationMatrix.makeRotationX(angleRad);
+    }
+
+    // Apply rotation to each point around the center point
+    points.forEach((point) => {
+      // Translate to origin (relative to center point)
+      point.sub(centerPoint);
+      // Apply rotation
+      point.applyMatrix4(rotationMatrix);
+      // Translate back
+      point.add(centerPoint);
+    });
   }
 
   highlightPoint(index) {
@@ -408,7 +485,34 @@ export class Wheel {
 
   resetPointColor(index) {
     if (this.allPoints[index]) {
-      const originalColor = index === 2 ? 0x00ff00 : index < 3 || (index >= 3 && index < this.pairPoints.length + 3) ? 0xff0000 : 0xffff00;
+      let originalColor;
+
+      switch (this.shapeType) {
+        case "wheel":
+          // Original wheel logic: center point at index 2, pair points are red, segment points are yellow
+          originalColor = index === 2 ? 0x00ff00 : index < 3 || (index >= 3 && index < this.pairPoints.length + 3) ? 0xff0000 : 0xffff00;
+          break;
+
+        case "spiral":
+        case "conicalSpiral":
+        case "sphericalSpiral":
+        case "cylinderSpiral":
+          // For spirals: all points in allPoints are red (0xff0000)
+          // The center point is stored separately and typically not in allPoints
+          originalColor = 0xff0000;
+          break;
+
+        case "grid":
+          // For grid: all points are red
+          originalColor = 0xff0000;
+          break;
+
+        default:
+          // Default to red for any other shape types
+          originalColor = 0xff0000;
+          break;
+      }
+
       this.allPoints[index].material.color.setHex(originalColor);
     }
   }

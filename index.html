@@ -53,6 +53,14 @@
           <label for="spiralPlaneAngle">Plane Angle: </label>
           <input type="number" id="spiralPlaneAngle" min="0" max="360" value="0" step="1" />
         </div>
+        <div>
+          <label for="spiralPlaneAxis">Plane Axis:</label>
+          <select id="spiralPlaneAxis">
+            <option value="x">X-Axis</option>
+            <option value="y">Y-Axis</option>
+            <option value="z">Z-Axis</option>
+          </select>
+        </div>
       </div>
 
       <div id="conicalSpiralInputs" style="display: none">
@@ -82,6 +90,18 @@
             <option value="start">Start Coordinate</option>
           </select>
         </div>
+        <div>
+          <label for="conicalSpiralPlaneAngle">Plane Angle: </label>
+          <input type="number" id="conicalSpiralPlaneAngle" min="0" max="360" value="0" step="1" />
+        </div>
+        <div>
+          <label for="conicalSpiralPlaneAxis">Plane Axis:</label>
+          <select id="conicalSpiralPlaneAxis">
+            <option value="x">X-Axis</option>
+            <option value="y">Y-Axis</option>
+            <option value="z">Z-Axis</option>
+          </select>
+        </div>
       </div>
 
       <div id="sphericalSpiralInputs" style="display: none">
@@ -98,6 +118,18 @@
         <div>Turns: <input type="number" id="sphericalSpiralTurns" min="0.1" max="10" value="2" step="0.1" /></div>
         <div>Start Angle: <input type="number" id="sphericalSpiralStartAngle" min="0" max="360" value="0" step="1" /></div>
         <div>End Angle: <input type="number" id="sphericalSpiralEndAngle" min="0" max="360" value="180" step="1" /></div>
+        <div>
+          <label for="sphericalSpiralPlaneAngle">Plane Angle: </label>
+          <input type="number" id="sphericalSpiralPlaneAngle" min="0" max="360" value="0" step="1" />
+        </div>
+        <div>
+          <label for="sphericalSpiralPlaneAxis">Plane Axis:</label>
+          <select id="sphericalSpiralPlaneAxis">
+            <option value="x">X-Axis</option>
+            <option value="y">Y-Axis</option>
+            <option value="z">Z-Axis</option>
+          </select>
+        </div>
       </div>
 
       <div id="gridInputs" style="display: none">
@@ -140,12 +172,24 @@
         <div>Radius: <input type="number" id="cylinderSpiralRadius" min="1" max="100" value="5" step="1" /></div>
         <div>Height: <input type="number" id="cylinderSpiralHeight" min="1" max="100" value="10" step="1" /></div>
         <div>Segments: <input type="number" id="cylinderSpiralSegments" min="1" max="100" value="36" step="1" /></div>
-        <div>Angle: <input type="number" id="cylinderSpiralAngle" min="0" max="360" value="45" step="1" /></div>
+        <div>Turns: <input type="number" id="cylinderSpiralTurns" min="0.1" max="10" value="2" step="0.1" /></div>
         <div>
           <label for="cylinderSpiralDirection">Direction:</label>
           <select id="cylinderSpiralDirection">
             <option value="clockwise">Clockwise</option>
             <option value="counterclockwise">Counter-clockwise</option>
+          </select>
+        </div>
+        <div>
+          <label for="cylinderSpiralPlaneAngle">Plane Angle: </label>
+          <input type="number" id="cylinderSpiralPlaneAngle" min="0" max="360" value="0" step="1" />
+        </div>
+        <div>
+          <label for="cylinderSpiralPlaneAxis">Plane Axis:</label>
+          <select id="cylinderSpiralPlaneAxis">
+            <option value="x">X-Axis</option>
+            <option value="y">Y-Axis</option>
+            <option value="z">Z-Axis</option>
           </select>
         </div>
       </div>
