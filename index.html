@@ -18,6 +18,7 @@
           <option value="sphericalSpiral">Spherical Spiral</option>
           <option value="grid">Grid</option>
           <option value="maze">Maze</option>
+          <option value="maze3d">3D Maze</option>
           <option value="cylinderSpiral">Cylinder Spiral</option>
         </select>
       </div>
@@ -167,6 +168,44 @@
         <div id="generatedWallCount"></div>
       </div>
 
+      <div id="maze3dInputs" style="display: none">
+        <h3>3D Maze Settings</h3>
+        <div class="input-group">
+          <label for="maze3dLength">Cell Length:</label>
+          <input type="number" id="maze3dLength" value="4" min="1" step="0.1" />
+        </div>
+        <div class="input-group">
+          <label for="maze3dWidth">Wall Width:</label>
+          <input type="number" id="maze3dWidth" value="1" min="1" />
+        </div>
+        <div class="input-group">
+          <label for="maze3dHeight">Wall Height:</label>
+          <input type="number" id="maze3dHeight" value="6" min="1" />
+        </div>
+        <div class="input-group">
+          <label for="maze3dFloorLength">Floor Piece Length:</label>
+          <input type="number" id="maze3dFloorLength" value="4" min="1" step="0.1" />
+        </div>
+        <div class="input-group">
+          <label for="maze3dFloorWidth">Floor Piece Width:</label>
+          <input type="number" id="maze3dFloorWidth" value="4" min="1" step="0.1" />
+        </div>
+        <div class="input-group">
+          <label for="maze3dDimensionX">Grid Width:</label>
+          <input type="number" id="maze3dDimensionX" value="3" min="2" />
+        </div>
+        <div class="input-group">
+          <label for="maze3dDimensionY">Grid Height:</label>
+          <input type="number" id="maze3dDimensionY" value="3" min="2" />
+          <span>(optional, defaults to Grid Width)</span>
+        </div>
+        <div class="input-group">
+          <label for="maze3dFloors">Number of Floors:</label>
+          <input type="number" id="maze3dFloors" value="2" min="2" max="10" />
+        </div>
+        <div id="generated3DWallCount"></div>
+      </div>
+
       <div id="cylinderSpiralInputs" style="display: none">
         <div>Center Point: X: <input type="number" id="cylinderSpiralCenterX" value="0" step="1" /> Y: <input type="number" id="cylinderSpiralCenterY" value="0" step="1" /> Z: <input type="number" id="cylinderSpiralCenterZ" value="0" step="1" /></div>
         <div>Radius: <input type="number" id="cylinderSpiralRadius" min="1" max="100" value="5" step="1" /></div>
@@ -200,7 +239,11 @@
       <!-- New elements for file upload and processing -->
       <div>
         <input type="file" id="jsonFileInput" accept=".json" />
-        <label for="jsonFileInput">Upload Design JSON</label>
+        <label for="jsonFileInput">Upload Wall Pieces JSON</label>
+      </div>
+      <div id="floorUploadSection" style="display: none">
+        <input type="file" id="floorFileInput" accept=".json" />
+        <label for="floorFileInput">Upload Floor Pieces JSON</label>
       </div>
       <button id="processDesignBtn">Process Design</button>
       <button id="downloadBtn" style="display: none">Download Processed JSON</button>

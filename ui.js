@@ -1,10 +1,12 @@
 export class UI {
-  constructor(wheel, sceneManager, maze) {
+  constructor(wheel, sceneManager, maze, maze3d) {
     this.wheel = wheel;
     this.sceneManager = sceneManager;
     this.maze = maze;
+    this.maze3d = maze3d;
     this.useMakePlaceFormat = false;
     this.uploadedDesign = null;
+    this.uploadedFloorDesign = null;
     this.processedDesign = null;
     this.shapeType = "wheel";
   }
@@ -18,6 +20,7 @@ export class UI {
     });
     document.getElementById("planeAngle").addEventListener("change", () => this.generatePoints());
     document.getElementById("jsonFileInput").addEventListener("change", (e) => this.handleFileUpload(e));
+    document.getElementById("floorFileInput").addEventListener("change", (e) => this.handleFloorFileUpload(e));
     document.getElementById("processDesignBtn").addEventListener("click", () => this.processDesign());
     document.getElementById("downloadBtn").addEventListener("click", () => this.downloadProcessedJSON());
     document.getElementById("shapeType").addEventListener("change", (e) => {
@@ -41,6 +44,8 @@ export class UI {
       this.generateGrid();
     } else if (this.shapeType === "maze") {
       this.generateMaze();
+    } else if (this.shapeType === "maze3d") {
+      this.generateMaze3D();
     } else if (this.shapeType === "cylinderSpiral") {
       this.generateCylinderSpiralUI();
     }
@@ -137,6 +142,25 @@ export class UI {
     wallCountSpan.textContent = `Generated Walls: ${this.maze.walls.length}`;
   }
 
+  generateMaze3D() {
+    const length = parseFloat(document.getElementById("maze3dLength").value);
+    const width = parseInt(document.getElementById("maze3dWidth").value);
+    const height = parseInt(document.getElementById("maze3dHeight").value);
+    const floorLength = parseFloat(document.getElementById("maze3dFloorLength").value);
+    const floorWidth = parseFloat(document.getElementById("maze3dFloorWidth").value);
+    const dimensionX = parseInt(document.getElementById("maze3dDimensionX").value);
+    const dimensionY = parseInt(document.getElementById("maze3dDimensionY").value) || dimensionX;
+    const floors = parseInt(document.getElementById("maze3dFloors").value);
+
+    const points = this.maze3d.generateMaze3D(length, width, height, floorLength, floorWidth, dimensionX, dimensionY, floors);
+    this.updateCoordinatesList();
+
+    const wallCountSpan = document.getElementById("generated3DWallCount");
+    if (wallCountSpan) {
+      wallCountSpan.textContent = `Generated Walls: ${this.maze3d.walls.length}, Floors: ${this.maze3d.floors.length} (Total Points: ${this.maze3d.allPoints.length})`;
+    }
+  }
+
   generateCylinderSpiralUI() {
     const centerX = parseFloat(document.getElementById("cylinderSpiralCenterX").value);
     const centerY = parseFloat(document.getElementById("cylinderSpiralCenterY").value);
@@ -157,7 +181,7 @@ export class UI {
 
   resetCameraToShape() {
     const centerPoint = new THREE.Vector3(0, 0, 0);
-    if (this.shapeType !== "maze" && this.wheel.centerPoint) {
+    if (this.shapeType !== "maze" && this.shapeType !== "maze3d" && this.wheel.centerPoint) {
       centerPoint.copy(this.wheel.centerPoint);
     }
     this.sceneManager.resetCamera(centerPoint);
@@ -165,7 +189,7 @@ export class UI {
 
   updateCoordinatesList() {
     const coordinatesDiv = document.getElementById("coordinates");
-    const points = this.shapeType === "maze" ? this.maze.allPoints : this.wheel.allPoints;
+    const points = this.shapeType === "maze" ? this.maze.allPoints : this.shapeType === "maze3d" ? this.maze3d.allPoints : this.wheel.allPoints;
     coordinatesDiv.innerHTML = `<h3>Coordinates (Total #: ${points.length})</h3>`;
 
     const addCoordinate = (name, point, index) => {
@@ -193,6 +217,8 @@ export class UI {
       div.addEventListener("mouseenter", () => {
         if (this.shapeType === "maze") {
           this.maze.highlightPoint(index);
+        } else if (this.shapeType === "maze3d") {
+          this.maze3d.highlightPoint(index);
         } else {
           this.wheel.highlightPoint(index);
         }
@@ -200,6 +226,8 @@ export class UI {
       div.addEventListener("mouseleave", () => {
         if (this.shapeType === "maze") {
           this.maze.resetPointColor(index);
+        } else if (this.shapeType === "maze3d") {
+          this.maze3d.resetPointColor(index);
         } else {
           this.wheel.resetPointColor(index);
         }
@@ -293,13 +321,36 @@ export class UI {
     }
   }
 
+  handleFloorFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          this.uploadedFloorDesign = JSON.parse(e.target.result);
+          this.uploadedFloorDesign.name = file.name.split(".").slice(0, -1).join("."); // Extract the file name without extension
+          console.log("Floor Design JSON loaded successfully");
+        } catch (error) {
+          console.error("Error parsing Floor JSON:", error);
+          alert("Error parsing Floor JSON file. Please make sure it's a valid JSON.");
+        }
+      };
+      reader.readAsText(file);
+    }
+  }
+
   processDesign() {
     if (!this.uploadedDesign) {
-      alert("Please upload a design JSON file first.");
+      alert("Please upload a wall pieces JSON file first.");
       return;
     }
 
-    if ((this.shapeType === "maze" && this.maze.allPoints.length < 1) || (this.shapeType !== "maze" && this.wheel.allPoints.length < 1)) {
+    if (this.shapeType === "maze3d" && !this.uploadedFloorDesign) {
+      alert("Please upload both wall pieces and floor pieces JSON files for 3D maze.");
+      return;
+    }
+
+    if ((this.shapeType === "maze" && this.maze.allPoints.length < 1) || (this.shapeType === "maze3d" && this.maze3d.allPoints.length < 1) || (this.shapeType !== "maze" && this.shapeType !== "maze3d" && this.wheel.allPoints.length < 1)) {
       alert("Please generate points first.");
       return;
     }
@@ -311,24 +362,32 @@ export class UI {
 
     delete this.processedDesign.transform;
 
-    const points = this.shapeType === "maze" ? this.maze.allPoints : this.wheel.allPoints;
+    const points = this.shapeType === "maze" ? this.maze.allPoints : this.shapeType === "maze3d" ? this.maze3d.allPoints : this.wheel.allPoints;
+
     points.forEach((point, index) => {
+      let designToUse = this.uploadedDesign;
+
+      // For 3D maze, use floor design for floor pieces
+      if (this.shapeType === "maze3d" && point.userData && point.userData.type === "floor") {
+        designToUse = this.uploadedFloorDesign;
+      }
+
       const newAttachment = {
-        ...this.uploadedDesign,
+        ...designToUse,
         transform: {
           location: [point.position.x * 100, point.position.z * 100, point.position.y * 100], // Swap Y/Z for Unreal
           rotation:
-            this.shapeType === "maze"
+            this.shapeType === "maze" || this.shapeType === "maze3d"
               ? [0, 0, Math.sin((point.rotation.y + Math.PI / 2) / 2), Math.cos((point.rotation.y + Math.PI / 2) / 2)] // Add PI/2 to align with MakePlace
-              : this.uploadedDesign.transform.rotation,
-          scale: this.uploadedDesign.transform.scale,
+              : designToUse.transform.rotation,
+          scale: designToUse.transform.scale,
         },
       };
       delete newAttachment.attachments;
       this.processedDesign.attachments.push(newAttachment);
 
       // Process attachments for all shapes
-      this.processAttachments(this.uploadedDesign, newAttachment, point);
+      this.processAttachments(designToUse, newAttachment, point);
     });
 
     console.log("Design processed successfully");
@@ -345,7 +404,7 @@ export class UI {
           const newAttachment = { ...attachment };
           const relativePosition = [attachment.transform.location[0] - originalDesign.transform.location[0], attachment.transform.location[1] - originalDesign.transform.location[1], attachment.transform.location[2] - originalDesign.transform.location[2]];
 
-          if (this.shapeType === "maze") {
+          if (this.shapeType === "maze" || this.shapeType === "maze3d") {
             // Rotate the relative position by the wall's rotation
             const cos = Math.cos(referencePoint.rotation.y);
             const sin = Math.sin(referencePoint.rotation.y);
@@ -402,6 +461,9 @@ export class UI {
     // Clear both wheel and maze objects when switching shapes
     this.wheel.clearPoints();
     this.maze.clearMaze();
+    if (this.maze3d) {
+      this.maze3d.clearMaze();
+    }
 
     const wheelInputs = document.getElementById("wheelInputs");
     const spiralInputs = document.getElementById("spiralInputs");
@@ -409,7 +471,9 @@ export class UI {
     const sphericalSpiralInputs = document.getElementById("sphericalSpiralInputs");
     const gridInputs = document.getElementById("gridInputs");
     const mazeInputs = document.getElementById("mazeInputs");
+    const maze3dInputs = document.getElementById("maze3dInputs");
     const cylinderSpiralInputs = document.getElementById("cylinderSpiralInputs");
+    const floorUploadSection = document.getElementById("floorUploadSection");
 
     wheelInputs.style.display = this.shapeType === "wheel" ? "block" : "none";
     spiralInputs.style.display = this.shapeType === "spiral" ? "block" : "none";
@@ -417,7 +481,9 @@ export class UI {
     sphericalSpiralInputs.style.display = this.shapeType === "sphericalSpiral" ? "block" : "none";
     gridInputs.style.display = this.shapeType === "grid" ? "block" : "none";
     mazeInputs.style.display = this.shapeType === "maze" ? "block" : "none";
+    maze3dInputs.style.display = this.shapeType === "maze3d" ? "block" : "none";
     cylinderSpiralInputs.style.display = this.shapeType === "cylinderSpiral" ? "block" : "none";
+    floorUploadSection.style.display = this.shapeType === "maze3d" ? "block" : "none";
 
     // Clear the coordinates list
     document.getElementById("coordinates").innerHTML = "";
