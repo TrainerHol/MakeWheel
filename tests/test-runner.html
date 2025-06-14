@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakeWheel Test Runner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-results {
+            margin-top: 20px;
+        }
+        .test-passed {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .test-failed {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .test-log {
+            background: #f9f9f9;
+            padding: 10px;
+            border-left: 4px solid #ddd;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .summary {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>MakeWheel Test Runner</h1>
+        <p>Simple test framework for validating MakeWheel modules</p>
+        
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="runUnitTests()">Run Unit Tests</button>
+        <button onclick="runIntegrationTests()">Run Integration Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="test-results" class="test-results"></div>
+        <div id="test-summary" class="summary" style="display: none;"></div>
+    </div>
+
+    <script type="module">
+        import { TestFramework } from './test-framework.js';
+        import { UtilsTests } from './utils-tests.js';
+        import { ShapeTests } from './shape-tests.js';
+        import { UITests } from './ui-tests.js';
+
+        let testFramework;
+        let allTestSuites = [];
+
+        // Initialize test framework and test suites
+        async function initializeTests() {
+            testFramework = new TestFramework();
+            
+            // Register test suites
+            allTestSuites = [
+                new UtilsTests(testFramework),
+                new ShapeTests(testFramework),
+                new UITests(testFramework)
+            ];
+        }
+
+        window.runAllTests = async function() {
+            await initializeTests();
+            clearResults();
+            
+            let totalTests = 0;
+            let passedTests = 0;
+            
+            for (const testSuite of allTestSuites) {
+                const results = await testSuite.runAll();
+                totalTests += results.total;
+                passedTests += results.passed;
+                displayTestResults(testSuite.name, results);
+            }
+            
+            displaySummary(totalTests, passedTests);
+        };
+
+        window.runUnitTests = async function() {
+            await initializeTests();
+            clearResults();
+            
+            let totalTests = 0;
+            let passedTests = 0;
+            
+            for (const testSuite of allTestSuites) {
+                if (testSuite.type === 'unit') {
+                    const results = await testSuite.runAll();
+                    totalTests += results.total;
+                    passedTests += results.passed;
+                    displayTestResults(testSuite.name, results);
+                }
+            }
+            
+            displaySummary(totalTests, passedTests);
+        };
+
+        window.runIntegrationTests = async function() {
+            await initializeTests();
+            clearResults();
+            
+            let totalTests = 0;
+            let passedTests = 0;
+            
+            for (const testSuite of allTestSuites) {
+                if (testSuite.type === 'integration') {
+                    const results = await testSuite.runAll();
+                    totalTests += results.total;
+                    passedTests += results.passed;
+                    displayTestResults(testSuite.name, results);
+                }
+            }
+            
+            displaySummary(totalTests, passedTests);
+        };
+
+        window.clearResults = function() {
+            document.getElementById('test-results').innerHTML = '';
+            document.getElementById('test-summary').style.display = 'none';
+        };
+
+        function displayTestResults(suiteName, results) {
+            const resultsDiv = document.getElementById('test-results');
+            
+            const suiteDiv = document.createElement('div');
+            suiteDiv.className = 'test-container';
+            
+            const title = document.createElement('h3');
+            title.textContent = `${suiteName} (${results.passed}/${results.total} passed)`;
+            suiteDiv.appendChild(title);
+            
+            results.tests.forEach(test => {
+                const testDiv = document.createElement('div');
+                testDiv.className = test.passed ? 'test-passed' : 'test-failed';
+                testDiv.textContent = `${test.passed ? '✓' : '✗'} ${test.name}`;
+                suiteDiv.appendChild(testDiv);
+                
+                if (test.log) {
+                    const logDiv = document.createElement('div');
+                    logDiv.className = 'test-log';
+                    logDiv.textContent = test.log;
+                    suiteDiv.appendChild(logDiv);
+                }
+            });
+            
+            resultsDiv.appendChild(suiteDiv);
+        }
+
+        function displaySummary(total, passed) {
+            const summaryDiv = document.getElementById('test-summary');
+            const percentage = total > 0 ? Math.round((passed / total) * 100) : 0;
+            
+            summaryDiv.innerHTML = `
+                <h3>Test Summary</h3>
+                <p><strong>Total Tests:</strong> ${total}</p>
+                <p><strong>Passed:</strong> ${passed}</p>
+                <p><strong>Failed:</strong> ${total - passed}</p>
+                <p><strong>Success Rate:</strong> ${percentage}%</p>
+            `;
+            summaryDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

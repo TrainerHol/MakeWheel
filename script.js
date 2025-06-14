@@ -2,7 +2,7 @@ import { Wheel } from "./wheel.js";
 import { SceneManager } from "./scene.js";
 import { UI } from "./ui.js";
 import { Maze } from "./maze.js";
-import { Maze3D } from "./3Dmaze.js";
+import { Maze3D } from "./Maze3D.js";
 
 const sceneManager = new SceneManager();
 sceneManager.init();
