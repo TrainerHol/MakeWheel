@@ -29,13 +29,10 @@
         <div>Repetitions: <input type="number" id="repetitions" min="1" max="20" value="12" step="1" /></div>
         <div>Segments: <input type="number" id="segments" min="0" max="20" value="0" step="1" /></div>
         <div>
-          <input type="checkbox" id="makePlaceFormat" />
-          <label for="makePlaceFormat">MakePlace Format</label>
-        </div>
-        <div>
           <label for="planeAngle">Plane Angle: </label>
           <input type="number" id="planeAngle" min="0" max="360" value="0" step="1" />
         </div>
+        <div id="generatedWheelCount"></div>
       </div>
 
       <div id="spiralInputs" style="display: none">
@@ -62,6 +59,7 @@
             <option value="z">Z-Axis</option>
           </select>
         </div>
+        <div id="generatedSpiralCount"></div>
       </div>
 
       <div id="conicalSpiralInputs" style="display: none">
@@ -103,6 +101,7 @@
             <option value="z">Z-Axis</option>
           </select>
         </div>
+        <div id="generatedConicalSpiralCount"></div>
       </div>
 
       <div id="sphericalSpiralInputs" style="display: none">
@@ -131,6 +130,7 @@
             <option value="z">Z-Axis</option>
           </select>
         </div>
+        <div id="generatedSphericalSpiralCount"></div>
       </div>
 
       <div id="gridInputs" style="display: none">
@@ -140,6 +140,7 @@
         <div>Spacing: <input type="number" id="gridSpacing" min="1" max="10" value="4" step="0.1" /></div>
         <div>Step Amount: <input type="number" id="gridStepAmount" min="0.1" max="10" value="2" step="0.1" /></div>
         <div>Floors: <input type="number" id="gridFloors" min="1" max="10" value="1" step="1" /></div>
+        <div id="generatedGridCount"></div>
       </div>
 
       <div id="mazeInputs" style="display: none">
@@ -231,22 +232,37 @@
             <option value="z">Z-Axis</option>
           </select>
         </div>
+        <div id="generatedCylinderSpiralCount"></div>
       </div>
 
       <button id="generateBtn">Generate</button>
       <button id="resetCamera">Reset Camera</button>
 
-      <!-- New elements for file upload and processing -->
-      <div>
-        <input type="file" id="jsonFileInput" accept=".json" />
-        <label for="jsonFileInput">Upload Wall Pieces JSON</label>
+      <!-- Global options -->
+      <div style="margin: 20px 0; padding: 10px;">
+        <h3>Output Options</h3>
+        <div>
+          <input type="checkbox" id="makePlaceFormat" />
+          <label for="makePlaceFormat">MakePlace Format</label>
+        </div>
       </div>
-      <div id="floorUploadSection" style="display: none">
-        <input type="file" id="floorFileInput" accept=".json" />
-        <label for="floorFileInput">Upload Floor Pieces JSON</label>
+
+      <!-- File upload and processing -->
+      <div style="margin: 20px 0; padding: 10px;">
+        <h3>MakePlace JSON Processing</h3>
+        <div>
+          <input type="file" id="jsonFileInput" accept=".json" />
+          <label for="jsonFileInput">Upload Wall/Item Pieces JSON</label>
+        </div>
+        <div id="floorUploadSection" style="display: none; margin-top: 10px;">
+          <input type="file" id="floorFileInput" accept=".json" />
+          <label for="floorFileInput">Upload Floor Pieces JSON</label>
+        </div>
+        <div style="margin-top: 10px;">
+          <button id="processDesignBtn" style="display: none;">Process Design</button>
+          <button id="downloadBtn" style="display: none;">Download Processed JSON</button>
+        </div>
       </div>
-      <button id="processDesignBtn">Process Design</button>
-      <button id="downloadBtn" style="display: none">Download Processed JSON</button>
     </div>
     <div id="coordinates"></div>
 
