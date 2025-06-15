@@ -350,35 +350,23 @@ export class ShapeControllers {
    * Enter room drawing mode
    */
   enterRoomDrawingMode() {
-    console.log('🟢 ShapeControllers.enterRoomDrawingMode() called');
-    
     if (!this.room) {
-      console.log('❌ Room not available');
       alert('Room generation not available');
       return;
     }
 
     try {
       const wallLength = parseInt(document.getElementById("roomWallLength").value);
-      console.log('🟢 Wall length:', wallLength);
       validateRange(wallLength, 1, 20, "Wall Length");
       
-      console.log('🟢 Calling room.enterDrawingMode()');
       this.room.enterDrawingMode(wallLength);
-      console.log('🟢 room.enterDrawingMode() completed');
-      
-      // Note: Button click handling is managed by UIManager, not here
       
       // Disable generate button while in drawing mode
       const generateBtn = document.getElementById("generateBtn");
       if (generateBtn) {
         generateBtn.disabled = true;
-        console.log('🟢 Generate button disabled');
       }
-      
-      console.log('🟢 enterRoomDrawingMode() completed successfully');
     } catch (error) {
-      console.log('❌ Error in enterRoomDrawingMode():', error);
       alert(`Drawing Mode Error: ${error.message}`);
     }
   }
@@ -387,20 +375,11 @@ export class ShapeControllers {
    * Exit room drawing mode
    */
   exitRoomDrawingMode() {
-    console.log('🔴 ShapeControllers.exitRoomDrawingMode() called');
-    
     if (!this.room) {
-      console.log('❌ Room not available');
       return;
     }
 
-    console.log('🔴 Calling room.exitDrawingMode()');
     this.room.exitDrawingMode();
-    console.log('🔴 room.exitDrawingMode() completed');
-    
-    // Note: Button click handling is managed by UIManager, not here
-    
-    console.log('🔴 exitRoomDrawingMode() completed successfully');
   }
 
   /**

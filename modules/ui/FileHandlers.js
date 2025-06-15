@@ -203,10 +203,17 @@ export class FileHandlers {
       const angle = point.rotation.y + Math.PI / 2;
       return [0, 0, Math.sin(angle / 2), Math.cos(angle / 2)];
     } else if (shapeType === "room") {
-      // Use stored rotation from userData for room walls
+      // Handle room walls and floors differently
       const rotationY = point.userData && point.userData.rotationY ? point.userData.rotationY : 0;
-      const angle = rotationY + Math.PI / 2;
-      return [0, 0, Math.sin(angle / 2), Math.cos(angle / 2)];
+      
+      if (point.userData && point.userData.type === "floor") {
+        // Floors: use rotation as-is without the PI/2 wall offset
+        return [0, 0, Math.sin(rotationY / 2), Math.cos(rotationY / 2)];
+      } else {
+        // Walls: add PI/2 to align with MakePlace
+        const angle = rotationY + Math.PI / 2;
+        return [0, 0, Math.sin(angle / 2), Math.cos(angle / 2)];
+      }
     } else {
       return designToUse.transform.rotation;
     }
