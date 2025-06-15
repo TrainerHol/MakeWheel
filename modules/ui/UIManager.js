@@ -27,6 +27,10 @@ export class UIManager {
   init() {
     this.setupEventListeners();
     this.cameraControls.init();
+    
+    // Connect camera controls to scene manager
+    this.sceneManager.setCameraControls(this.cameraControls);
+    
     this.updateUIForShape();
   }
 
@@ -124,7 +128,7 @@ export class UIManager {
 
       if (success) {
         this.coordinatesDisplay.updateCoordinatesList(this.shapeType);
-        this.resetCameraToShape();
+        // Camera position is preserved - use the Reset Camera button if needed
       }
     } catch (error) {
       console.error("Error generating shape:", error);
