@@ -1,4 +1,4 @@
-import { COLORS, SIZES } from '../utils/constants.js';
+import { COLORS, SIZES, ANIMATION } from '../utils/constants.js';
 
 /**
  * Base class for all shape generators
@@ -185,5 +185,23 @@ export class BaseShape {
    */
   getPointCount() {
     return this.allPoints.length;
+  }
+
+  /**
+   * Removes duplicate points based on exact position matching
+   * Uses the same precision as mazes for consistency
+   */
+  deduplicatePoints() {
+    const uniquePoints = new Map();
+    this.allPoints.forEach((point) => {
+      const key = `${point.position.x.toFixed(ANIMATION.PRECISION)},${point.position.y.toFixed(ANIMATION.PRECISION)},${point.position.z.toFixed(ANIMATION.PRECISION)}`;
+      if (!uniquePoints.has(key)) {
+        uniquePoints.set(key, point);
+      } else {
+        // Remove duplicate from scene
+        this.scene.remove(point);
+      }
+    });
+    this.allPoints = Array.from(uniquePoints.values());
   }
 }

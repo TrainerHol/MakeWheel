@@ -134,6 +134,9 @@ export class Wheel {
 
   // Sync properties from current shape to maintain backward compatibility
   syncProperties() {
+    // Remove duplicates first
+    this.currentShape.deduplicatePoints();
+    
     this.allPoints = this.currentShape.getPoints();
     this.centerPoint = this.currentShape.centerPoint;
     this.lines = this.currentShape.lines || [];

@@ -36,10 +36,10 @@ export class Wheel extends BaseShape {
     this.pairPoints = [];
     this.segmentPoints = [];
 
-    // Create the two reference points
-    this.point1 = this.createSphere(point1Coords, COLORS.POINT);
-    this.point2 = this.createSphere(point2Coords, COLORS.POINT);
-    this.allPoints.push(this.point1, this.point2);
+    // Store reference point coordinates for geometry calculations (no visual spheres)
+    this.point1 = { position: point1Coords.clone() };
+    this.point2 = { position: point2Coords.clone() };
+    // Note: point1 and point2 are just coordinate data, not visual objects
 
     // Calculate center point (midpoint between point1 and point2)
     const midpoint = new THREE.Vector3().addVectors(point1Coords, point2Coords).multiplyScalar(0.5);
@@ -96,12 +96,10 @@ export class Wheel extends BaseShape {
    * @returns {number} Hex color value
    */
   getOriginalPointColor(index) {
-    // First two points are the reference points (red)
-    if (index < 2) return COLORS.POINT;
-    // Third point is the center (green)
-    if (index === 2) return COLORS.CENTER;
+    // First point is the center (green)
+    if (index === 0) return COLORS.CENTER;
     // Points after center up to pairPoints length are edge points (red)
-    if (index < 3 + this.pairPoints.length) return COLORS.POINT;
+    if (index < 1 + this.pairPoints.length) return COLORS.POINT;
     // Remaining points are segment points (yellow)
     return COLORS.SEGMENT;
   }

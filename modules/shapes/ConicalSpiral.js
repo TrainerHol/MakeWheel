@@ -33,9 +33,8 @@ export class ConicalSpiral extends Spiral {
     // Create center point
     this.centerPoint = this.createSphere(centerPoint, COLORS.CENTER);
     
-    // Create start point
-    const startSphere = this.createSphere(startPoint, COLORS.POINT);
-    this.allPoints.push(startSphere);
+    // Store start point for calculations (no visual sphere, will be part of spiral)
+    this.startPoint = startPoint;
 
     // Calculate spiral parameters
     const startRadius = new THREE.Vector2(

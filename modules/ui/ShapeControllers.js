@@ -39,7 +39,7 @@ export class ShapeControllers {
       validateRange(planeAngle, -360, 360, "Plane Angle");
 
       this.wheel.generatePoints(point1Coords, point2Coords, repetitions, segments, planeAngle);
-      // this.updateCount('Wheel', this.wheel.allPoints.length);
+      this.updateCount('Wheel', this.wheel.allPoints.length);
       return true;
     } catch (error) {
       alert(`Wheel Generation Error: ${error.message}`);
@@ -77,7 +77,7 @@ export class ShapeControllers {
       validateRange(planeAngle, -360, 360, "Plane Angle");
 
       this.wheel.generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle, planeAxis);
-      // this.updateCount('Spiral', this.wheel.allPoints.length);
+      this.updateCount('Spiral', this.wheel.allPoints.length);
       return true;
     } catch (error) {
       alert(`Spiral Generation Error: ${error.message}`);
@@ -119,7 +119,7 @@ export class ShapeControllers {
       validateRange(planeAngle, -360, 360, "Plane Angle");
 
       this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter, planeAngle, planeAxis);
-      // this.updateCount('ConicalSpiral', this.wheel.allPoints.length);
+      this.updateCount('ConicalSpiral', this.wheel.allPoints.length);
       return true;
     } catch (error) {
       alert(`Conical Spiral Generation Error: ${error.message}`);
@@ -160,7 +160,7 @@ export class ShapeControllers {
       }
 
       this.wheel.generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle, planeAngle, planeAxis);
-      // this.updateCount('SphericalSpiral', this.wheel.allPoints.length);
+      this.updateCount('SphericalSpiral', this.wheel.allPoints.length);
       return true;
     } catch (error) {
       alert(`Spherical Spiral Generation Error: ${error.message}`);
@@ -193,7 +193,7 @@ export class ShapeControllers {
       validateRange(floors, 1, 20, "Floors");
 
       this.wheel.generateGrid(centerPoint, rows, columns, spacing, stepAmount, floors);
-      // this.updateCount('Grid', this.wheel.allPoints.length);
+      this.updateCount('Grid', this.wheel.allPoints.length);
       return true;
     } catch (error) {
       alert(`Grid Generation Error: ${error.message}`);
@@ -228,7 +228,7 @@ export class ShapeControllers {
       validateRange(planeAngle, -360, 360, "Plane Angle");
 
       this.wheel.generateCylinderSpiral(center, radius, height, segments, turns, direction, planeAngle, planeAxis);
-      // this.updateCount('CylinderSpiral', this.wheel.allPoints.length);
+      this.updateCount('CylinderSpiral', this.wheel.allPoints.length);
       return true;
     } catch (error) {
       alert(`Cylinder Spiral Generation Error: ${error.message}`);
@@ -328,6 +328,32 @@ export class ShapeControllers {
 
     // Clear coordinates list
     document.getElementById("coordinates").innerHTML = "";
+    
+    // Clear all count displays
+    this.clearAllCounts();
+  }
+
+  /**
+   * Clear all count displays
+   */
+  clearAllCounts() {
+    const countElements = [
+      'generatedWheelCount',
+      'generatedSpiralCount', 
+      'generatedConicalSpiralCount',
+      'generatedSphericalSpiralCount',
+      'generatedGridCount',
+      'generatedWallCount',
+      'generated3DWallCount',
+      'generatedCylinderSpiralCount'
+    ];
+    
+    countElements.forEach(elementId => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.textContent = '';
+      }
+    });
   }
 
   /**
