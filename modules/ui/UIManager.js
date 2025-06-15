@@ -58,21 +58,14 @@ export class UIManager {
     // Room drawing mode button - handle mode switching
     const roomDrawingModeBtn = document.getElementById("roomDrawingModeBtn");
     if (roomDrawingModeBtn) {
-      console.log('🟢 UIManager: Setting up room drawing mode button listener');
       roomDrawingModeBtn.addEventListener("click", () => {
-        console.log('🟢 UIManager: Room drawing mode button clicked');
-        
         // Check current state and call appropriate method
         if (this.wheel.roomShape && this.wheel.roomShape.isDrawingMode) {
-          console.log('🟢 UIManager: Currently in drawing mode, exiting...');
           this.shapeControllers.exitRoomDrawingMode();
         } else {
-          console.log('🟢 UIManager: Not in drawing mode, entering...');
           this.shapeControllers.enterRoomDrawingMode();
         }
       });
-    } else {
-      console.log('❌ UIManager: roomDrawingModeBtn not found');
     }
 
     // Room floor file upload (in MakePlace JSON Processing section)

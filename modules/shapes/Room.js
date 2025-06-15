@@ -81,204 +81,137 @@ export class Room extends BaseShape {
    * Creates the interactive drawing grid
    */
   createDrawingGrid(wallLength) {
-    console.log('🟢 createDrawingGrid() called with wallLength:', wallLength);
-    
-    try {
-      // Clean up any existing drawing grid
-      if (this.drawingGrid) {
-        console.log('🟢 Cleaning up existing drawing grid...');
-        this.clearSelectedCellMeshes();
-        this.scene.remove(this.drawingGrid);
-        this.drawingGrid = null;
-      }
-
-      console.log('🟢 Creating new drawing grid...');
-      this.drawingGrid = new THREE.Group();
-      this.gridCells = [];
-      
-      // Calculate grid parameters based on wall length
-      this.gridSize = wallLength * this.gridDivisions;
-      const cellSize = wallLength;
-      const halfGrid = this.gridSize / 2;
-      
-      console.log('🟢 Grid parameters: gridSize=', this.gridSize, 'cellSize=', cellSize, 'gridDivisions=', this.gridDivisions);
-      
-      // Create individual grid cells for interaction
-      let cellCount = 0;
-      for (let x = 0; x < this.gridDivisions; x++) {
-        this.gridCells[x] = [];
-        for (let z = 0; z < this.gridDivisions; z++) {
-          const cellGeometry = new THREE.PlaneGeometry(cellSize, cellSize);
-          const cellMaterial = new THREE.MeshBasicMaterial({ 
-            color: COLORS.GRID_CELL,
-            transparent: true,
-            opacity: 0.1,
-            side: THREE.DoubleSide
-          });
-          
-          const cell = new THREE.Mesh(cellGeometry, cellMaterial);
-          cell.rotation.x = -Math.PI / 2; // Lay flat on ground
-          cell.position.set(
-            (x * cellSize) - halfGrid + (cellSize / 2),
-            0.01, // Slightly above ground
-            (z * cellSize) - halfGrid + (cellSize / 2)
-          );
-          
-          // Store grid coordinates for later use
-          cell.userData = { gridX: x, gridZ: z };
-          
-          this.drawingGrid.add(cell);
-          this.gridCells[x][z] = cell;
-          cellCount++;
-        }
-      }
-      
-      console.log('🟢 Created', cellCount, 'grid cells');
-      
-      // Create grid lines for visual reference
-      console.log('🟢 Creating grid helper...');
-      const gridHelper = new THREE.GridHelper(this.gridSize, this.gridDivisions, COLORS.GRID_LINE, COLORS.GRID_LINE);
-      this.drawingGrid.add(gridHelper);
-      
-      console.log('🟢 Adding drawing grid to scene...');
-      this.scene.add(this.drawingGrid);
-      
-      console.log('🟢 Drawing grid children count:', this.drawingGrid.children.length);
-      console.log('🟢 createDrawingGrid() completed successfully');
-    } catch (error) {
-      console.log('❌ Error in createDrawingGrid():', error);
-      throw error;
+    // Clean up any existing drawing grid
+    if (this.drawingGrid) {
+      this.clearSelectedCellMeshes();
+      this.scene.remove(this.drawingGrid);
+      this.drawingGrid = null;
     }
+
+    this.drawingGrid = new THREE.Group();
+    this.gridCells = [];
+    
+    // Calculate grid parameters based on wall length
+    this.gridSize = wallLength * this.gridDivisions;
+    const cellSize = wallLength;
+    const halfGrid = this.gridSize / 2;
+    
+    // Create individual grid cells for interaction
+    for (let x = 0; x < this.gridDivisions; x++) {
+      this.gridCells[x] = [];
+      for (let z = 0; z < this.gridDivisions; z++) {
+        const cellGeometry = new THREE.PlaneGeometry(cellSize, cellSize);
+        const cellMaterial = new THREE.MeshBasicMaterial({ 
+          color: COLORS.GRID_CELL,
+          transparent: true,
+          opacity: 0.1,
+          side: THREE.DoubleSide
+        });
+        
+        const cell = new THREE.Mesh(cellGeometry, cellMaterial);
+        cell.rotation.x = -Math.PI / 2; // Lay flat on ground
+        cell.position.set(
+          (x * cellSize) - halfGrid + (cellSize / 2),
+          0.01, // Slightly above ground
+          (z * cellSize) - halfGrid + (cellSize / 2)
+        );
+        
+        // Store grid coordinates for later use
+        cell.userData = { gridX: x, gridZ: z };
+        
+        this.drawingGrid.add(cell);
+        this.gridCells[x][z] = cell;
+      }
+    }
+    
+    // Create grid lines for visual reference
+    const gridHelper = new THREE.GridHelper(this.gridSize, this.gridDivisions, COLORS.GRID_LINE, COLORS.GRID_LINE);
+    this.drawingGrid.add(gridHelper);
+    
+    this.scene.add(this.drawingGrid);
   }
 
   /**
    * Enters drawing mode - hides existing objects and shows drawing grid
    */
   enterDrawingMode(wallLength) {
-    console.log('🟢 Room.enterDrawingMode() called with wallLength:', wallLength);
+    this.isDrawingMode = true;
     
-    try {
-      console.log('🟢 Setting isDrawingMode = true');
-      this.isDrawingMode = true;
-      
-      // Hide all existing objects except the drawing grid and keep track of what to restore
-      console.log('🟢 Hiding existing objects...');
-      this.hiddenObjects = [];
-      let hiddenCount = 0;
-      this.scene.traverse((object) => {
-        if (object !== this.drawingGrid && object.visible) {
-          // Hide all objects but track their type for proper restoration
-          if (object.type === 'Mesh' || object.type === 'Line' || object.type === 'Group' || object.type === 'GridHelper') {
-            this.hiddenObjects.push({
-              object: object,
-              wasVisible: object.visible
-            });
-            object.visible = false;
-            hiddenCount++;
-          }
+    // Hide all existing objects except the drawing grid and keep track of what to restore
+    this.hiddenObjects = [];
+    this.scene.traverse((object) => {
+      if (object !== this.drawingGrid && object.visible) {
+        // Hide all objects but track their type for proper restoration
+        if (object.type === 'Mesh' || object.type === 'Line' || object.type === 'Group' || object.type === 'GridHelper') {
+          this.hiddenObjects.push({
+            object: object,
+            wasVisible: object.visible
+          });
+          object.visible = false;
         }
-      });
-      console.log('🟢 Hidden', hiddenCount, 'objects');
-      
-      // Create and show drawing grid
-      console.log('🟢 Creating drawing grid...');
-      this.createDrawingGrid(wallLength);
-      console.log('🟢 Drawing grid created');
-      
-      // Restore any previously selected cells
-      console.log('🟢 Restoring selected cells...');
-      this.restoreSelectedCells();
-      console.log('🟢 Selected cells restored');
-      
-      // Add mouse event listeners
-      console.log('🟢 Adding mouse listeners...');
-      this.addMouseListeners();
-      console.log('🟢 Mouse listeners added');
-      
-      // Update button text to match state
-      console.log('🟢 Updating button text...');
-      this.updateButtonText();
-      console.log('🟢 Button text updated');
-      
-      console.log('🟢 Room.enterDrawingMode() completed successfully');
-    } catch (error) {
-      console.log('❌ Error in Room.enterDrawingMode():', error);
-      throw error;
-    }
+      }
+    });
+    
+    // Create and show drawing grid
+    this.createDrawingGrid(wallLength);
+    
+    // Restore any previously selected cells
+    this.restoreSelectedCells();
+    
+    // Add mouse event listeners
+    this.addMouseListeners();
+    
+    // Update button text to match state
+    this.updateButtonText();
   }
 
   /**
    * Exits drawing mode - shows hidden objects and hides drawing grid
    */
   exitDrawingMode() {
-    console.log('🔴 Room.exitDrawingMode() called');
-    console.log('🔴 Current isDrawingMode:', this.isDrawingMode);
-    console.log('🔴 Selected cells count:', this.selectedCells.size);
+    // Remove mouse listeners FIRST to prevent interference
+    this.removeMouseListeners();
     
-    try {
-      // CRITICAL: Remove mouse listeners FIRST to prevent interference
-      console.log('🔴 Removing mouse listeners...');
-      this.removeMouseListeners();
-      
-      // CRITICAL: Set state immediately
-      console.log('🔴 Setting isDrawingMode = false');
-      this.isDrawingMode = false;
-      
-      // CRITICAL: Force complete drawing grid cleanup
-      console.log('🔴 Force removing drawing grid...');
-      this.forceRemoveDrawingGrid();
-      
-      // Restore hidden objects
-      console.log('🔴 Restoring', this.hiddenObjects.length, 'hidden objects...');
-      let restoredCount = 0;
-      this.hiddenObjects.forEach(item => {
-        if (item.object && item.wasVisible) {
-          item.object.visible = true;
-          restoredCount++;
-        }
-      });
-      console.log('🔴 Restored', restoredCount, 'objects');
-      this.hiddenObjects = [];
-      
-      // Force normal grid to be visible
-      console.log('🔴 Force restoring normal grid...');
-      this.forceRestoreNormalGrid();
-      
-      // Update button text
-      console.log('🔴 Updating button text...');
-      this.updateButtonText();
-      
-      // Auto-generate if we have selected cells
-      if (this.selectedCells.size > 0) {
-        console.log('🔴 Auto-generating with', this.selectedCells.size, 'selected cells');
-        try {
-          const params = this.getGenerationParameters();
-          console.log('🔴 Generation parameters:', params);
-          this.generate(params);
-          
-          // Update the count display
-          const wallCount = this.walls ? this.walls.length : 0;
-          const floorCount = this.floors ? this.floors.length : 0;
-          console.log('🔴 Generated walls:', wallCount, 'floors:', floorCount);
-          const countElement = document.getElementById('generatedRoomCount');
-          if (countElement) {
-            countElement.textContent = `Generated Points: ${this.allPoints.length} (Walls: ${wallCount}, Floors: ${floorCount})`;
-            countElement.style.fontWeight = 'bold';
-            countElement.style.color = '#2196F3';
-            countElement.style.marginTop = '10px';
-          }
-        } catch (error) {
-          console.error('❌ Auto-generation failed:', error.message);
-          alert(`Auto-generation failed: ${error.message}`);
-        }
-      } else {
-        console.log('🔴 No selected cells, skipping auto-generation');
+    // Set state immediately
+    this.isDrawingMode = false;
+    
+    // Force complete drawing grid cleanup
+    this.forceRemoveDrawingGrid();
+    
+    // Restore hidden objects
+    this.hiddenObjects.forEach(item => {
+      if (item.object && item.wasVisible) {
+        item.object.visible = true;
       }
-      
-      console.log('🔴 Room.exitDrawingMode() completed successfully');
-    } catch (error) {
-      console.error('❌ Error in Room.exitDrawingMode():', error);
-      alert(`Error exiting drawing mode: ${error.message}`);
+    });
+    this.hiddenObjects = [];
+    
+    // Force normal grid to be visible
+    this.forceRestoreNormalGrid();
+    
+    // Update button text
+    this.updateButtonText();
+    
+    // Auto-generate if we have selected cells
+    if (this.selectedCells.size > 0) {
+      try {
+        const params = this.getGenerationParameters();
+        this.generate(params);
+        
+        // Update the count display
+        const wallCount = this.walls ? this.walls.length : 0;
+        const floorCount = this.floors ? this.floors.length : 0;
+        const countElement = document.getElementById('generatedRoomCount');
+        if (countElement) {
+          countElement.textContent = `Generated Points: ${this.allPoints.length} (Walls: ${wallCount}, Floors: ${floorCount})`;
+          countElement.style.fontWeight = 'bold';
+          countElement.style.color = '#2196F3';
+          countElement.style.marginTop = '10px';
+        }
+      } catch (error) {
+        console.error('Auto-generation failed:', error.message);
+        alert(`Auto-generation failed: ${error.message}`);
+      }
     }
   }
 
@@ -286,103 +219,62 @@ export class Room extends BaseShape {
    * Forces complete removal of drawing grid with thorough cleanup
    */
   forceRemoveDrawingGrid() {
-    console.log('🔴 forceRemoveDrawingGrid() called');
+    // Clear selected cell meshes first
+    this.clearSelectedCellMeshes();
     
-    try {
-      // Clear selected cell meshes first
-      console.log('🔴 Clearing selected cell meshes...');
-      this.clearSelectedCellMeshes();
-      
-      if (this.drawingGrid) {
-        console.log('🔴 Drawing grid exists, children count:', this.drawingGrid.children.length);
-        
-        // Dispose of all geometries and materials in the drawing grid
-        console.log('🔴 Disposing geometries and materials...');
-        let disposedCount = 0;
-        this.drawingGrid.traverse((child) => {
-          if (child.geometry) {
-            child.geometry.dispose();
-            disposedCount++;
-          }
-          if (child.material) {
-            if (Array.isArray(child.material)) {
-              child.material.forEach(material => material.dispose());
-            } else {
-              child.material.dispose();
-            }
-          }
-        });
-        console.log('🔴 Disposed', disposedCount, 'geometries/materials');
-        
-        // Remove all children
-        console.log('🔴 Removing all children...');
-        while (this.drawingGrid.children.length > 0) {
-          const child = this.drawingGrid.children[0];
-          this.drawingGrid.remove(child);
+    if (this.drawingGrid) {
+      // Dispose of all geometries and materials in the drawing grid
+      this.drawingGrid.traverse((child) => {
+        if (child.geometry) {
+          child.geometry.dispose();
         }
-        console.log('🔴 All children removed, remaining:', this.drawingGrid.children.length);
-        
-        // Remove from scene
-        console.log('🔴 Removing drawing grid from scene...');
-        this.scene.remove(this.drawingGrid);
-        this.drawingGrid = null;
-        console.log('🔴 Drawing grid set to null');
-      } else {
-        console.log('🔴 No drawing grid to remove');
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(material => material.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+      
+      // Remove all children
+      while (this.drawingGrid.children.length > 0) {
+        const child = this.drawingGrid.children[0];
+        this.drawingGrid.remove(child);
       }
       
-      // Clear all drawing-related arrays
-      console.log('🔴 Clearing arrays...');
-      this.gridCells = [];
-      this.selectedCellMeshes = [];
-      
-      console.log('🔴 forceRemoveDrawingGrid() completed');
-    } catch (error) {
-      console.log('❌ Error in forceRemoveDrawingGrid():', error);
-      throw error;
+      // Remove from scene
+      this.scene.remove(this.drawingGrid);
+      this.drawingGrid = null;
     }
+    
+    // Clear all drawing-related arrays
+    this.gridCells = [];
+    this.selectedCellMeshes = [];
   }
 
   /**
    * Forces normal grid to be visible
    */
   forceRestoreNormalGrid() {
-    console.log('🔴 forceRestoreNormalGrid() called');
-    
-    try {
-      // Ensure the main planeVisualization is visible
-      const planeViz = this.scene.getObjectByName('planeVisualization');
-      if (planeViz) {
-        planeViz.visible = true;
-        console.log('🔴 PlaneVisualization restored, visible:', planeViz.visible);
-      } else {
-        console.log('❌ PlaneVisualization not found');
-      }
-      
-      // Make sure all normal GridHelper objects are visible
-      let gridHelperCount = 0;
-      this.scene.traverse((object) => {
-        if (object.type === 'GridHelper') {
-          object.visible = true;
-          gridHelperCount++;
-          console.log('🔴 GridHelper restored, visible:', object.visible);
-        }
-      });
-      console.log('🔴 Total GridHelpers restored:', gridHelperCount);
-      
-      console.log('🔴 forceRestoreNormalGrid() completed');
-    } catch (error) {
-      console.log('❌ Error in forceRestoreNormalGrid():', error);
-      throw error;
+    // Ensure the main planeVisualization is visible
+    const planeViz = this.scene.getObjectByName('planeVisualization');
+    if (planeViz) {
+      planeViz.visible = true;
     }
+    
+    // Make sure all normal GridHelper objects are visible
+    this.scene.traverse((object) => {
+      if (object.type === 'GridHelper') {
+        object.visible = true;
+      }
+    });
   }
 
   /**
    * Adds mouse event listeners for grid interaction
    */
   addMouseListeners() {
-    console.log('🔴 addMouseListeners() called');
-    
     // Remove any existing listeners first
     this.removeMouseListeners();
     
@@ -390,29 +282,22 @@ export class Room extends BaseShape {
     this.boundMouseClick = (event) => this.onMouseClick(event);
     this.boundMouseMove = (event) => this.onMouseMove(event);
     
-    console.log('🔴 Adding event listeners to window...');
     window.addEventListener('click', this.boundMouseClick);
     window.addEventListener('mousemove', this.boundMouseMove);
-    console.log('🔴 Mouse listeners added successfully');
   }
 
   /**
    * Removes mouse event listeners
    */
   removeMouseListeners() {
-    console.log('🔴 removeMouseListeners() called');
-    
     if (this.boundMouseClick) {
-      console.log('🔴 Removing click listener');
       window.removeEventListener('click', this.boundMouseClick);
       this.boundMouseClick = null;
     }
     if (this.boundMouseMove) {
-      console.log('🔴 Removing move listener');
       window.removeEventListener('mousemove', this.boundMouseMove);
       this.boundMouseMove = null;
     }
-    console.log('🔴 Mouse listeners removed');
   }
 
   /**
@@ -664,44 +549,154 @@ export class Room extends BaseShape {
   }
 
   /**
-   * Generates optimized floor tiles using actual floor pieces
+   * Generates optimized floor tiles using smart rectangle packing
    */
   generateOptimizedFloors(roomLayout, floorLength, floorWidth, wallLength) {
-    // For each selected cell, determine how many floor pieces we need
-    roomLayout.forEach(cell => {
-      const { x, z } = cell;
+    // Convert grid cells to world coordinates and find rectangles
+    const rectangles = this.findOptimalFloorRectangles(roomLayout, floorLength, floorWidth, wallLength);
+    
+    // Place floor pieces for each rectangle
+    rectangles.forEach((rect, index) => {
+      const floorMesh = this.createFloorMesh(
+        new THREE.Vector3(rect.x, 0, rect.z),
+        rect.pieceLength,
+        0.2, // Small height for floor
+        rect.pieceWidth,
+        rect.rotation
+      );
       
-      // Calculate the world position for this grid cell
-      const cellWorldX = (x * wallLength) - (this.gridSize / 2) + (wallLength / 2);
-      const cellWorldZ = (z * wallLength) - (this.gridSize / 2) + (wallLength / 2);
+      this.floors.push(floorMesh);
+    });
+  }
+
+  /**
+   * Finds optimal rectangles to place floor pieces with minimal overlap
+   */
+  findOptimalFloorRectangles(roomLayout, floorLength, floorWidth, wallLength) {
+    const rectangles = [];
+    const grid = new Set(roomLayout.map(cell => `${cell.x},${cell.z}`));
+    const covered = new Set();
+    
+    // Sort cells to process them systematically
+    const sortedCells = roomLayout.sort((a, b) => a.x === b.x ? a.z - b.z : a.x - b.x);
+    
+    sortedCells.forEach(cell => {
+      const cellKey = `${cell.x},${cell.z}`;
+      if (covered.has(cellKey)) return;
       
-      // Determine how many floor pieces fit in this cell
-      // wallLength is the size of one grid cell
-      const piecesX = Math.ceil(wallLength / floorLength);
-      const piecesZ = Math.ceil(wallLength / floorWidth);
-      
-      // Place floor pieces to cover this cell
-      for (let px = 0; px < piecesX; px++) {
-        for (let pz = 0; pz < piecesZ; pz++) {
-          // Calculate position for this floor piece within the cell
-          const offsetX = (px * floorLength) - (wallLength / 2) + (floorLength / 2);
-          const offsetZ = (pz * floorWidth) - (wallLength / 2) + (floorWidth / 2);
-          
-          const floorX = cellWorldX + offsetX;
-          const floorZ = cellWorldZ + offsetZ;
-          
-          // Create actual floor piece (not stretched)
-          const floorMesh = this.createFloorMesh(
-            new THREE.Vector3(floorX, 0, floorZ),
-            floorLength,
-            0.2, // Small height for floor
-            floorWidth
-          );
-          
-          this.floors.push(floorMesh);
+      // Try both orientations of the floor piece
+      const orientations = [
+        { 
+          length: floorLength, 
+          width: floorWidth, 
+          rotation: 0, 
+          name: 'normal' 
+        },
+        { 
+          length: floorWidth, 
+          width: floorLength, 
+          rotation: Math.PI / 2, 
+          name: 'rotated' 
         }
+      ];
+      
+      let bestPlacement = null;
+      let bestCoverage = 0;
+      
+      orientations.forEach(orientation => {
+        const placement = this.tryPlaceFloorPiece(
+          cell, 
+          orientation.length, 
+          orientation.width, 
+          wallLength, 
+          grid, 
+          covered
+        );
+        
+        if (placement && placement.coverage > bestCoverage) {
+          bestCoverage = placement.coverage;
+          bestPlacement = {
+            ...placement,
+            rotation: orientation.rotation,
+            pieceLength: orientation.length,
+            pieceWidth: orientation.width
+          };
+        }
+      });
+      
+      if (bestPlacement) {
+        rectangles.push(bestPlacement);
+        
+        // Mark covered cells
+        bestPlacement.coveredCells.forEach(cellKey => {
+          covered.add(cellKey);
+        });
       }
     });
+    
+    return rectangles;
+  }
+
+  /**
+   * Tries to place a floor piece at a given position and returns coverage info
+   */
+  tryPlaceFloorPiece(startCell, pieceLength, pieceWidth, wallLength, grid, covered) {
+    // Calculate how many grid cells this piece covers in each dimension
+    const cellsX = Math.ceil(pieceLength / wallLength);
+    const cellsZ = Math.ceil(pieceWidth / wallLength);
+    
+    // Find the best position for this piece starting from startCell
+    let bestX = startCell.x;
+    let bestZ = startCell.z;
+    let bestCoverage = 0;
+    let bestCoveredCells = [];
+    
+    // Try different alignments around the start cell
+    for (let offsetX = 0; offsetX < cellsX; offsetX++) {
+      for (let offsetZ = 0; offsetZ < cellsZ; offsetZ++) {
+        const cornerX = startCell.x - offsetX;
+        const cornerZ = startCell.z - offsetZ;
+        
+        const coveredCells = [];
+        let validCells = 0;
+        
+        // Check which cells this placement would cover
+        for (let dx = 0; dx < cellsX; dx++) {
+          for (let dz = 0; dz < cellsZ; dz++) {
+            const cellX = cornerX + dx;
+            const cellZ = cornerZ + dz;
+            const cellKey = `${cellX},${cellZ}`;
+            
+            if (grid.has(cellKey)) {
+              coveredCells.push(cellKey);
+              if (!covered.has(cellKey)) {
+                validCells++;
+              }
+            }
+          }
+        }
+        
+        if (validCells > bestCoverage) {
+          bestCoverage = validCells;
+          bestCoveredCells = coveredCells;
+          bestX = cornerX;
+          bestZ = cornerZ;
+        }
+      }
+    }
+    
+    if (bestCoverage === 0) return null;
+    
+    // Calculate world position (center of the piece)
+    const worldX = (bestX * wallLength) - (this.gridSize / 2) + (wallLength / 2) + ((cellsX - 1) * wallLength / 2);
+    const worldZ = (bestZ * wallLength) - (this.gridSize / 2) + (wallLength / 2) + ((cellsZ - 1) * wallLength / 2);
+    
+    return {
+      x: worldX,
+      z: worldZ,
+      coverage: bestCoverage,
+      coveredCells: bestCoveredCells
+    };
   }
 
   /**
@@ -1054,24 +1049,39 @@ export class Room extends BaseShape {
   /**
    * Creates a 3D floor mesh like in the maze system
    */
-  createFloorMesh(position, length, height, width) {
+  createFloorMesh(position, length, height, width, rotation = 0) {
+    const isRotated = Math.abs(rotation) > 0.1;
+    
+    console.log(`Creating floor: ${length}x${width} rotated: ${isRotated}`);
+    
+    // Use dimensions as-is (algorithm already handles the swapping)
+    // Three.js BoxGeometry: (width, height, depth) where width=X, height=Y, depth=Z
     const geometry = new THREE.BoxGeometry(length, height, width);
+    
+    // Make rotated pieces visually distinct with different color for debugging
     const material = new THREE.MeshPhongMaterial({
-      color: COLORS.FLOOR,
+      color: isRotated ? 0x00ff00 : COLORS.FLOOR, // Green for rotated, normal color for unrotated
       flatShading: true,
       shininess: 0,
-      emissive: COLORS.FLOOR_EMISSIVE,
+      emissive: isRotated ? 0x003300 : COLORS.FLOOR_EMISSIVE,
       specular: COLORS.FLOOR_SPECULAR,
     });
 
     const floor = new THREE.Mesh(geometry, material);
     floor.position.copy(position);
-    floor.userData = { type: 'floor' };
+    // Don't apply Three.js rotation - the algorithm handles orientation through dimensions
+    floor.rotation.y = 0;
+    
+    // Keep the original rotation in userData for JSON export (this keeps JSON perfect!)
+    floor.userData = { 
+      type: 'floor',
+      rotationY: rotation  
+    };
 
-    // Create edges
+    // Create edges with different color for rotated pieces
     const edges = new THREE.EdgesGeometry(geometry);
     const edgesMaterial = new THREE.LineBasicMaterial({
-      color: COLORS.FLOOR_EDGE,
+      color: isRotated ? 0x00ff00 : COLORS.FLOOR_EDGE,
       linewidth: 2,
     });
     const edgesMesh = new THREE.LineSegments(edges, edgesMaterial);
@@ -1086,15 +1096,9 @@ export class Room extends BaseShape {
    * Updates button text to match the current room state
    */
   updateButtonText() {
-    console.log('🔴 updateButtonText() called, isDrawingMode:', this.isDrawingMode);
-    
     const button = document.getElementById("roomDrawingModeBtn");
     if (button) {
-      const newText = this.isDrawingMode ? "Exit Drawing Mode" : "Enter Drawing Mode";
-      console.log('🔴 Setting button text to:', newText);
-      button.textContent = newText;
-    } else {
-      console.log('❌ Button roomDrawingModeBtn not found');
+      button.textContent = this.isDrawingMode ? "Exit Drawing Mode" : "Enter Drawing Mode";
     }
   }
 
@@ -1102,8 +1106,6 @@ export class Room extends BaseShape {
    * Ensures the room is in the correct initial state
    */
   ensureCorrectInitialState() {
-    console.log('Ensuring correct initial state...');
-    
     // Force room to correct initial state
     this.isDrawingMode = false;
     
@@ -1121,8 +1123,6 @@ export class Room extends BaseShape {
     
     // Update button to match state
     this.updateButtonText();
-    
-    console.log('Initial state restored');
   }
 
   /**
