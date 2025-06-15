@@ -1,3 +1,5 @@
+import { COLORS, SIZES } from './modules/utils/constants.js';
+
 export class SceneManager {
   constructor() {
     this.scene = new THREE.Scene();
@@ -26,35 +28,74 @@ export class SceneManager {
   createPlaneVisualization() {
     this.planeVisualization = new THREE.Group();
 
-    const axisLength = 60;
-    const axisColor = 0xffffff;
-    const axisWidth = 2;
+    const axisLength = SIZES.AXIS_LENGTH;
+    const axisWidth = SIZES.AXIS_WIDTH;
 
-    const xAxis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-axisLength, 0, 0), new THREE.Vector3(axisLength, 0, 0)]), new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: axisWidth }));
-    const yAxis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, -axisLength, 0), new THREE.Vector3(0, axisLength, 0)]), new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: axisWidth }));
-    const zAxis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, -axisLength), new THREE.Vector3(0, 0, axisLength)]), new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: axisWidth }));
+    // Create slightly thicker axes using cylinder geometry to avoid grid conflicts
+    const axisRadius = 0.1; // Just slightly thicker than grid lines
+    
+    // X axis (red)
+    const xGeometry = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength * 2, 8);
+    const xMaterial = new THREE.MeshBasicMaterial({ color: COLORS.AXIS_X });
+    const xAxis = new THREE.Mesh(xGeometry, xMaterial);
+    xAxis.rotation.z = Math.PI / 2; // Rotate to align with X axis
+    
+    // Y axis (green) 
+    const yGeometry = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength * 2, 8);
+    const yMaterial = new THREE.MeshBasicMaterial({ color: COLORS.AXIS_Y });
+    const yAxis = new THREE.Mesh(yGeometry, yMaterial);
+    // Y axis is already aligned correctly
+    
+    // Z axis (blue)
+    const zGeometry = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength * 2, 8);
+    const zMaterial = new THREE.MeshBasicMaterial({ color: COLORS.AXIS_Z });
+    const zAxis = new THREE.Mesh(zGeometry, zMaterial);
+    zAxis.rotation.x = Math.PI / 2; // Rotate to align with Z axis
 
     this.planeVisualization.add(xAxis, yAxis, zAxis);
 
     const loader = new THREE.FontLoader();
     loader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json", (font) => {
-      const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const textMaterial = new THREE.MeshBasicMaterial({ color: COLORS.TEXT });
 
-      const xText = new THREE.Mesh(new THREE.TextGeometry("X", { font: font, size: 3, height: 0.1 }), textMaterial);
-      xText.position.set(axisLength + 2, 0, 0);
+      const xText = new THREE.Mesh(
+        new THREE.TextGeometry("X", { 
+          font: font, 
+          size: SIZES.TEXT_SIZE, 
+          height: SIZES.TEXT_HEIGHT 
+        }), 
+        textMaterial
+      );
+      xText.position.set(axisLength + SIZES.TEXT_OFFSET, 0, 0);
 
-      const yText = new THREE.Mesh(new THREE.TextGeometry("Y", { font: font, size: 3, height: 0.1 }), textMaterial);
-      yText.position.set(0, axisLength + 2, 0);
+      const yText = new THREE.Mesh(
+        new THREE.TextGeometry("Y", { 
+          font: font, 
+          size: SIZES.TEXT_SIZE, 
+          height: SIZES.TEXT_HEIGHT 
+        }), 
+        textMaterial
+      );
+      yText.position.set(0, axisLength + SIZES.TEXT_OFFSET, 0);
 
-      const zText = new THREE.Mesh(new THREE.TextGeometry("Z", { font: font, size: 3, height: 0.1 }), textMaterial);
-      zText.position.set(0, 0, axisLength + 2);
+      const zText = new THREE.Mesh(
+        new THREE.TextGeometry("Z", { 
+          font: font, 
+          size: SIZES.TEXT_SIZE, 
+          height: SIZES.TEXT_HEIGHT 
+        }), 
+        textMaterial
+      );
+      zText.position.set(0, 0, axisLength + SIZES.TEXT_OFFSET);
 
       this.planeVisualization.add(xText, yText, zText);
     });
 
-    const gridSize = 100;
-    const gridDivisions = 10;
+    const gridSize = SIZES.GRID_SIZE;
+    const gridDivisions = SIZES.GRID_DIVISIONS;
     const gridHelper = new THREE.GridHelper(gridSize, gridDivisions);
+    
+    // Grid is back! Axes are now slightly thicker to stand out from grid
     this.planeVisualization.add(gridHelper);
 
     this.scene.add(this.planeVisualization);
@@ -79,6 +120,16 @@ export class SceneManager {
 
   animate() {
     requestAnimationFrame(() => this.animate());
+    
+    // Update camera controls if they exist
+    if (this.cameraControls) {
+      this.cameraControls.update();
+    }
+    
     this.renderer.render(this.scene, this.camera);
+  }
+
+  setCameraControls(cameraControls) {
+    this.cameraControls = cameraControls;
   }
 }
