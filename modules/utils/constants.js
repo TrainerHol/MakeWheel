@@ -20,7 +20,15 @@ export const COLORS = {
   AXIS_Z: 0x0000ff,       // Blue
   TEXT: 0xffffff,         // White
   EDGE: 0x000000,         // Black
-  FLOOR_EDGE: 0x000044    // Dark blue
+  FLOOR_EDGE: 0x000044,   // Dark blue
+  
+  // Room colors
+  GRID_CELL: 0x888888,    // Gray
+  GRID_LINE: 0x444444,    // Dark gray
+  SELECTED_CELL: 0x00ff00, // Green
+  FLOOR_POINT: 0x0066ff,  // Blue
+  WALL_POINT: 0xff0000,   // Red
+  CENTER_POINT: 0x00ff00  // Green
 };
 
 // Size constants
@@ -122,6 +130,15 @@ export const DEFAULTS = {
     RADIUS: 5,
     HEIGHT: 10,
     SEGMENTS: 36
+  },
+  
+  // Room
+  ROOM: {
+    WALL_LENGTH: 4,
+    WALL_WIDTH: 1,
+    WALL_HEIGHT: 6,
+    FLOOR_LENGTH: 4,
+    FLOOR_WIDTH: 4
   }
 };
 

@@ -15,7 +15,7 @@ export class UIManager {
     this.shapeType = "wheel";
 
     // Initialize sub-components
-    this.shapeControllers = new ShapeControllers(wheel, maze, maze3d);
+    this.shapeControllers = new ShapeControllers(wheel, maze, maze3d, wheel.roomShape);
     this.fileHandlers = new FileHandlers();
     this.coordinatesDisplay = new CoordinatesDisplay(wheel, maze, maze3d);
     this.cameraControls = new CameraControls(sceneManager);
@@ -54,6 +54,34 @@ export class UIManager {
     document.getElementById("resetCamera").addEventListener("click", () => {
       this.resetCameraToShape();
     });
+
+    // Room drawing mode button - handle mode switching
+    const roomDrawingModeBtn = document.getElementById("roomDrawingModeBtn");
+    if (roomDrawingModeBtn) {
+      console.log('🟢 UIManager: Setting up room drawing mode button listener');
+      roomDrawingModeBtn.addEventListener("click", () => {
+        console.log('🟢 UIManager: Room drawing mode button clicked');
+        
+        // Check current state and call appropriate method
+        if (this.wheel.roomShape && this.wheel.roomShape.isDrawingMode) {
+          console.log('🟢 UIManager: Currently in drawing mode, exiting...');
+          this.shapeControllers.exitRoomDrawingMode();
+        } else {
+          console.log('🟢 UIManager: Not in drawing mode, entering...');
+          this.shapeControllers.enterRoomDrawingMode();
+        }
+      });
+    } else {
+      console.log('❌ UIManager: roomDrawingModeBtn not found');
+    }
+
+    // Room floor file upload (in MakePlace JSON Processing section)
+    const roomFloorFileInput = document.getElementById("roomFloorFileInput");
+    if (roomFloorFileInput) {
+      roomFloorFileInput.addEventListener("change", (e) => {
+        this.fileHandlers.handleRoomFloorFileUpload(e);
+      });
+    }
 
     // MakePlace format toggle
     document.getElementById("makePlaceFormat").addEventListener("change", (e) => {
@@ -121,6 +149,9 @@ export class UIManager {
         case "cylinderSpiral":
           success = this.shapeControllers.generateCylinderSpiral();
           break;
+        case "room":
+          success = this.shapeControllers.generateRoom();
+          break;
         default:
           console.warn(`Unknown shape type: ${this.shapeType}`);
           return;
@@ -155,6 +186,12 @@ export class UIManager {
   updateUIForShape() {
     this.shapeControllers.updateUIForShape(this.shapeType);
     this.coordinatesDisplay.clear();
+    
+    // Hide/show generate button based on shape type
+    const generateBtn = document.getElementById("generateBtn");
+    if (generateBtn) {
+      generateBtn.style.display = this.shapeType === "room" ? "none" : "block";
+    }
   }
 
   /**

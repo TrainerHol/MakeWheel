@@ -7,6 +7,7 @@ export class FileHandlers {
   constructor() {
     this.uploadedDesign = null;
     this.uploadedFloorDesign = null;
+    this.uploadedRoomFloorDesign = null;
     this.processedDesign = null;
   }
 
@@ -82,6 +83,41 @@ export class FileHandlers {
   }
 
   /**
+   * Handle room floor design file upload
+   */
+  handleRoomFloorFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      validateJsonFile(file);
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const jsonData = JSON.parse(e.target.result);
+          
+          // Validate JSON structure
+          if (!jsonData.name) {
+            throw new Error("Room floor JSON file must contain a 'name' property");
+          }
+          if (!jsonData.transform) {
+            throw new Error("Room floor JSON file must contain a 'transform' property");
+          }
+          
+          this.uploadedRoomFloorDesign = jsonData;
+          console.log("Room floor file uploaded successfully:", jsonData.name);
+        } catch (parseError) {
+          alert(`Invalid room floor JSON file: ${parseError.message}`);
+        }
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      alert(`Room Floor File Upload Error: ${error.message}`);
+    }
+  }
+
+  /**
    * Process uploaded design with generated shape points
    */
   processDesign(shapeType, wheel, maze, maze3d) {
@@ -110,6 +146,11 @@ export class FileHandlers {
         // For 3D maze, use floor design for floor pieces
         if (shapeType === "maze3d" && point.userData && point.userData.type === "floor") {
           designToUse = this.uploadedFloorDesign || this.uploadedDesign;
+        }
+
+        // For rooms, use appropriate design based on point type
+        if (shapeType === "room" && point.userData && point.userData.type === "floor") {
+          designToUse = this.uploadedRoomFloorDesign || this.uploadedDesign;
         }
 
         const newAttachment = {
@@ -146,6 +187,8 @@ export class FileHandlers {
         return maze.allPoints;
       case "maze3d":
         return maze3d.allPoints;
+      case "room":
+        return wheel.roomShape ? wheel.roomShape.allPoints : [];
       default:
         return wheel.allPoints;
     }
@@ -158,6 +201,11 @@ export class FileHandlers {
     if (shapeType === "maze" || shapeType === "maze3d") {
       // Add PI/2 to align with MakePlace for maze walls
       const angle = point.rotation.y + Math.PI / 2;
+      return [0, 0, Math.sin(angle / 2), Math.cos(angle / 2)];
+    } else if (shapeType === "room") {
+      // Use stored rotation from userData for room walls
+      const rotationY = point.userData && point.userData.rotationY ? point.userData.rotationY : 0;
+      const angle = rotationY + Math.PI / 2;
       return [0, 0, Math.sin(angle / 2), Math.cos(angle / 2)];
     } else {
       return designToUse.transform.rotation;

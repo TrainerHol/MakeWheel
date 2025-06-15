@@ -5,10 +5,11 @@ import { DEFAULTS } from '../utils/constants.js';
  * Handles form controls and generation for all shape types
  */
 export class ShapeControllers {
-  constructor(wheel, maze, maze3d) {
+  constructor(wheel, maze, maze3d, room = null) {
     this.wheel = wheel;
     this.maze = maze;
     this.maze3d = maze3d;
+    this.room = room;
   }
 
   /**
@@ -304,6 +305,105 @@ export class ShapeControllers {
   }
 
   /**
+   * Generate room from form inputs
+   */
+  generateRoom() {
+    if (!this.room) {
+      alert('Room generation not available');
+      return false;
+    }
+
+    try {
+      const wallLength = parseInt(document.getElementById("roomWallLength").value);
+      const wallWidth = parseInt(document.getElementById("roomWallWidth").value);
+      const wallHeight = parseInt(document.getElementById("roomWallHeight").value);
+      const floorLength = parseInt(document.getElementById("roomFloorLength").value);
+      const floorWidth = parseInt(document.getElementById("roomFloorWidth").value);
+
+      // Validate inputs
+      validateRange(wallLength, 1, 20, "Wall Length");
+      validateRange(wallWidth, 1, 10, "Wall Width");
+      validateRange(wallHeight, 1, 20, "Wall Height");
+      validateRange(floorLength, 1, 20, "Floor Length");
+      validateRange(floorWidth, 1, 20, "Floor Width");
+
+      const params = {
+        wallLength,
+        wallWidth,
+        wallHeight,
+        floorLength,
+        floorWidth
+      };
+
+      this.room.generate(params);
+      const wallCount = this.room.walls ? this.room.walls.length : 0;
+      const floorCount = this.room.floors ? this.room.floors.length : 0;
+      this.updateCount('Room', this.room.allPoints.length, `(Walls: ${wallCount}, Floors: ${floorCount})`);
+      return true;
+    } catch (error) {
+      alert(`Room Generation Error: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Enter room drawing mode
+   */
+  enterRoomDrawingMode() {
+    console.log('🟢 ShapeControllers.enterRoomDrawingMode() called');
+    
+    if (!this.room) {
+      console.log('❌ Room not available');
+      alert('Room generation not available');
+      return;
+    }
+
+    try {
+      const wallLength = parseInt(document.getElementById("roomWallLength").value);
+      console.log('🟢 Wall length:', wallLength);
+      validateRange(wallLength, 1, 20, "Wall Length");
+      
+      console.log('🟢 Calling room.enterDrawingMode()');
+      this.room.enterDrawingMode(wallLength);
+      console.log('🟢 room.enterDrawingMode() completed');
+      
+      // Note: Button click handling is managed by UIManager, not here
+      
+      // Disable generate button while in drawing mode
+      const generateBtn = document.getElementById("generateBtn");
+      if (generateBtn) {
+        generateBtn.disabled = true;
+        console.log('🟢 Generate button disabled');
+      }
+      
+      console.log('🟢 enterRoomDrawingMode() completed successfully');
+    } catch (error) {
+      console.log('❌ Error in enterRoomDrawingMode():', error);
+      alert(`Drawing Mode Error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Exit room drawing mode
+   */
+  exitRoomDrawingMode() {
+    console.log('🔴 ShapeControllers.exitRoomDrawingMode() called');
+    
+    if (!this.room) {
+      console.log('❌ Room not available');
+      return;
+    }
+
+    console.log('🔴 Calling room.exitDrawingMode()');
+    this.room.exitDrawingMode();
+    console.log('🔴 room.exitDrawingMode() completed');
+    
+    // Note: Button click handling is managed by UIManager, not here
+    
+    console.log('🔴 exitRoomDrawingMode() completed successfully');
+  }
+
+  /**
    * Update UI visibility based on selected shape type
    */
   updateUIForShape(shapeType) {
@@ -316,7 +416,9 @@ export class ShapeControllers {
       mazeInputs: "maze",
       maze3dInputs: "maze3d",
       cylinderSpiralInputs: "cylinderSpiral",
-      floorUploadSection: "maze3d"
+      roomInputs: "room",
+      floorUploadSection: "maze3d",
+      roomFloorUploadSection: "room"
     };
 
     Object.entries(sections).forEach(([elementId, targetShape]) => {
@@ -331,6 +433,17 @@ export class ShapeControllers {
     
     // Clear all count displays
     this.clearAllCounts();
+    
+    // Reset room drawing mode button text (handler managed by UIManager)
+    const roomDrawingBtn = document.getElementById("roomDrawingModeBtn");
+    if (roomDrawingBtn) {
+      roomDrawingBtn.textContent = "Enter Drawing Mode";
+    }
+    
+    // Clean up room state when switching shapes
+    if (this.room) {
+      this.room.ensureCorrectInitialState();
+    }
   }
 
   /**
@@ -345,7 +458,8 @@ export class ShapeControllers {
       'generatedGridCount',
       'generatedWallCount',
       'generated3DWallCount',
-      'generatedCylinderSpiralCount'
+      'generatedCylinderSpiralCount',
+      'generatedRoomCount'
     ];
     
     countElements.forEach(elementId => {
