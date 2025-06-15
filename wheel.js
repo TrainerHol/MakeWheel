@@ -7,14 +7,16 @@ import { ConicalSpiral } from './modules/shapes/ConicalSpiral.js';
 import { SphericalSpiral } from './modules/shapes/SphericalSpiral.js';
 import { CylinderSpiral } from './modules/shapes/CylinderSpiral.js';
 import { Grid } from './modules/shapes/Grid.js';
+import { Room } from './modules/shapes/Room.js';
 
 /**
  * Legacy Wheel class that provides backward compatibility
  * by combining all shape types into a single class
  */
 export class Wheel {
-  constructor(scene) {
+  constructor(scene, camera = null) {
     this.scene = scene;
+    this.camera = camera;
     
     // Initialize all shape instances
     this.wheelShape = new WheelShape(scene);
@@ -23,6 +25,7 @@ export class Wheel {
     this.sphericalSpiralShape = new SphericalSpiral(scene);
     this.cylinderSpiralShape = new CylinderSpiral(scene);
     this.gridShape = new Grid(scene);
+    this.roomShape = new Room(scene, camera);
     
     // Current active shape
     this.currentShape = this.wheelShape;

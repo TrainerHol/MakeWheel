@@ -7,7 +7,7 @@ import { Maze3D } from "./Maze3D.js";
 const sceneManager = new SceneManager();
 sceneManager.init();
 
-const wheel = new Wheel(sceneManager.scene);
+const wheel = new Wheel(sceneManager.scene, sceneManager.camera);
 const maze = new Maze(sceneManager.scene);
 const maze3d = new Maze3D(sceneManager.scene);
 

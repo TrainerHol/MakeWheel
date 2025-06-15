@@ -20,6 +20,7 @@
           <option value="maze">Maze</option>
           <option value="maze3d">3D Maze</option>
           <option value="cylinderSpiral">Cylinder Spiral</option>
+          <option value="room">Room</option>
         </select>
       </div>
 
@@ -235,11 +236,24 @@
         <div id="generatedCylinderSpiralCount"></div>
       </div>
 
+      <div id="roomInputs" style="display: none">
+        <div>Wall Length: <input type="number" id="roomWallLength" min="1" max="20" value="4" step="1" /></div>
+        <div>Wall Width: <input type="number" id="roomWallWidth" min="1" max="10" value="1" step="1" /></div>
+        <div>Wall Height: <input type="number" id="roomWallHeight" min="1" max="20" value="6" step="1" /></div>
+        <div>Floor Length: <input type="number" id="roomFloorLength" min="1" max="20" value="4" step="1" /></div>
+        <div>Floor Width: <input type="number" id="roomFloorWidth" min="1" max="20" value="4" step="1" /></div>
+        <div style="margin: 10px 0">
+          <button id="roomDrawingModeBtn" type="button">Enter Drawing Mode</button>
+          <p style="font-size: 12px; color: #666; margin: 5px 0">Draw your room layout.</p>
+        </div>
+        <div id="generatedRoomCount"></div>
+      </div>
+
       <button id="generateBtn">Generate</button>
       <button id="resetCamera">Reset Camera</button>
 
       <!-- Global options -->
-      <div style="margin: 20px 0; padding: 10px;">
+      <div style="margin: 20px 0; padding: 10px">
         <h3>Output Options</h3>
         <div>
           <input type="checkbox" id="makePlaceFormat" />
@@ -248,19 +262,23 @@
       </div>
 
       <!-- File upload and processing -->
-      <div style="margin: 20px 0; padding: 10px;">
+      <div style="margin: 20px 0; padding: 10px">
         <h3>MakePlace JSON Processing</h3>
         <div>
           <input type="file" id="jsonFileInput" accept=".json" />
           <label for="jsonFileInput">Upload Wall/Item Pieces JSON</label>
         </div>
-        <div id="floorUploadSection" style="display: none; margin-top: 10px;">
+        <div id="floorUploadSection" style="display: none; margin-top: 10px">
           <input type="file" id="floorFileInput" accept=".json" />
-          <label for="floorFileInput">Upload Floor Pieces JSON</label>
+          <label for="floorFileInput">Upload Floor Pieces JSON (3D Maze)</label>
         </div>
-        <div style="margin-top: 10px;">
-          <button id="processDesignBtn" style="display: none;">Process Design</button>
-          <button id="downloadBtn" style="display: none;">Download Processed JSON</button>
+        <div id="roomFloorUploadSection" style="display: none; margin-top: 10px">
+          <input type="file" id="roomFloorFileInput" accept=".json" />
+          <label for="roomFloorFileInput">Upload Floor Pieces JSON (Room)</label>
+        </div>
+        <div style="margin-top: 10px">
+          <button id="processDesignBtn" style="display: none">Process Design</button>
+          <button id="downloadBtn" style="display: none">Download Processed JSON</button>
         </div>
       </div>
     </div>
