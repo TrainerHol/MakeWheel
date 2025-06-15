@@ -1,16 +1,22 @@
 # MakeWheel by Hol
 
+## Link
+
+[You can use this tool from here](https://trainerhol.github.io/MakeWheel/)
+
 ## Overview
 
-MakeWheel is a tool designed to take custom design files from MakePlace and repeat them using a selected pattern shape type. This program is particularly useful for creating intricate designs such as spirals, wheels, and scaffolding structures. The output file can then be reimported into MakePlace for further tweaking and adjustments.
+MakeWheel is a web-based tool for creating geometric patterns and designs that can be imported into MakePlace (a Final Fantasy XIV housing design tool). It takes custom design files from MakePlace and repeats them using selected pattern shape types to create intricate designs such as spirals, wheels, grids, and mazes. The output file can then be reimported into MakePlace for further tweaking and adjustments.
 
 ## Features
 
-- **Shape Types**: Choose from four different shape types: Wheel, Spiral, Conical Spiral, and Spherical Spiral.
-- **Customizable Parameters**: Adjust various parameters such as points, repetitions, segments, plane angles, and more to create unique designs.
-- **File Upload and Processing**: Upload a JSON design file, process it according to the selected shape type, and download the processed JSON file.
-- **Interactive UI**: An intuitive user interface to input parameters and visualize the generated shapes in real-time.
-- **MakePlace Format**: Option to format coordinates for MakePlace compatibility.
+- **8 Shape Types**: Choose from Wheel, Spiral, Conical Spiral, Spherical Spiral, Cylinder Spiral, Grid, 2D Maze, and 3D Maze patterns
+- **3D Visualization**: Real-time 3D preview using Three.js with interactive camera controls
+- **Comprehensive Parameters**: Extensive customization options for each shape type with validation
+- **File Processing**: Upload and process MakePlace JSON files with generated patterns
+- **Interactive UI**: Intuitive interface with real-time parameter validation and error messages
+- **MakePlace Compatibility**: Direct export to MakePlace-compatible JSON format
+- **Coordinate Display**: View generated coordinates in a list with easy copy/paste
 
 ## How It Works
 
@@ -23,63 +29,186 @@ MakeWheel is a tool designed to take custom design files from MakePlace and repe
 
 ## Shape Types
 
-### Wheel
+### 1. Wheel
 
-- **Point 1 and Point 2**: Define the two points that form the base of the wheel.
-- **Repetitions**: Number of times the shape is repeated around the wheel.
-- **Segments**: Number of segments between each repetition.
-- **Plane Angle**: Angle of the plane in which the wheel lies.
+Creates circular patterns with points distributed around a center defined by two reference points.
 
-### Spiral
+**Parameters:**
 
-- **Center Point**: The center of the spiral.
-- **Start Point**: The starting point of the spiral.
-- **Direction**: Clockwise or counterclockwise direction of the spiral.
-- **Segments**: Number of segments in the spiral.
-- **Turns**: Number of turns in the spiral.
-- **Plane Angle**: Angle of the plane in which the spiral lies.
+- **Point 1 (X, Y, Z)**: First reference point for the wheel (default: 25, 0, 0)
+- **Point 2 (X, Y, Z)**: Second reference point for the wheel (default: -25, 0, 0)
+- **Repetitions**: Number of points around the wheel circumference (range: 1-20, default: 12)
+- **Segments**: Number of intermediate points between center and edge (range: 0-20, default: 0)
+- **Plane Angle**: Rotation angle of the entire wheel in degrees (range: 0-360°, default: 0°)
 
-### Conical Spiral
+### 2. Spiral
 
-- **Center Point**: The center of the conical spiral.
-- **Start Point**: The starting point of the conical spiral.
-- **Direction**: Clockwise or counterclockwise direction of the conical spiral.
-- **Segments**: Number of segments in the conical spiral.
-- **Turns**: Number of turns in the conical spiral.
-- **Height**: Height of the conical spiral.
-- **Orientation**: Upright or inverted orientation.
-- **Start Point**: Whether to start from the center or the start coordinate.
+Creates flat spiral patterns expanding outward from a center point.
 
-**Approximation for Equal Spacing**: The total length of the conical spiral is calculated using the formula:
-\[ \text{Total Length} = \sqrt{(\text{Start Radius})^2 + (\text{Height})^2} \times \text{Turns} \]
-The segment length is then determined by dividing the total length by the number of segments.
+**Parameters:**
 
-### Spherical Spiral
+- **Center Point (X, Y, Z)**: Center of the spiral (default: 0, 0, 0)
+- **Start Point (X, Y, Z)**: Starting point of the spiral (default: 25, 0, 0)
+- **Direction**: Spiral direction (clockwise/counterclockwise, default: clockwise)
+- **Segments**: Number of points along the spiral (range: 1-100, default: 50)
+- **Turns**: Number of complete rotations (range: 0.1-10, default: 2)
+- **Plane Angle**: Rotation angle of the spiral plane (range: 0-360°, default: 0°)
+- **Plane Axis**: Axis for plane rotation (X/Y/Z-Axis, default: X-Axis)
 
-- **Center Point**: The center of the spherical spiral.
-- **Radius**: The radius of the spherical spiral.
-- **Direction**: Clockwise or counterclockwise direction of the spiral.
-- **Segments**: Number of segments in the spiral.
-- **Turns**: Number of turns in the spiral.
-- **Start Angle**: The angle at which the spiral starts.
-- **End Angle**: The angle at which the spiral ends.
+### 3. Conical Spiral
 
-**Approximation for Equal Spacing**: The total length of the spherical spiral is approximated by calculating the distance between consecutive points along the spiral. The segment length is then distributed evenly based on the total length divided by the number of segments.
+Creates spiral patterns that form a cone shape, spiraling upward or downward.
+
+**Parameters:**
+
+- **Center Point (X, Y, Z)**: Center of the cone base (default: 0, 0, 0)
+- **Start Point (X, Y, Z)**: Starting point of the spiral (default: 25, 0, 0)
+- **Direction**: Spiral direction (clockwise/counterclockwise, default: clockwise)
+- **Segments**: Number of points along the spiral (range: 1-100, default: 25)
+- **Turns**: Number of complete rotations (range: 0.1-10, default: 2)
+- **Height**: Height of the cone (range: 1-100, default: 30)
+- **Orientation**: Cone orientation (upright/inverted, default: upright)
+- **Start Point**: Starting location (center/start coordinate, default: center)
+- **Plane Angle**: Rotation angle of the cone plane (range: 0-360°, default: 0°)
+- **Plane Axis**: Axis for plane rotation (X/Y/Z-Axis, default: X-Axis)
+
+### 4. Spherical Spiral
+
+Creates spiral patterns on the surface of a sphere, following latitude lines.
+
+**Parameters:**
+
+- **Center Point (X, Y, Z)**: Center of the sphere (default: 0, 0, 0)
+- **Radius**: Radius of the sphere (range: 1-100, default: 25)
+- **Direction**: Spiral direction (clockwise/counterclockwise, default: clockwise)
+- **Segments**: Number of points along the spiral (range: 1-100, default: 50)
+- **Turns**: Number of complete rotations (range: 0.1-10, default: 2)
+- **Start Angle**: Starting polar angle in degrees (range: 0-360°, default: 0°)
+- **End Angle**: Ending polar angle in degrees (range: 0-360°, default: 180°)
+- **Plane Angle**: Rotation angle of the sphere plane (range: 0-360°, default: 0°)
+- **Plane Axis**: Axis for plane rotation (X/Y/Z-Axis, default: X-Axis)
+
+### 5. Cylinder Spiral
+
+Creates spiral patterns wrapped around a cylinder surface.
+
+**Parameters:**
+
+- **Center Point (X, Y, Z)**: Center of the cylinder base (default: 0, 0, 0)
+- **Radius**: Radius of the cylinder (range: 1-100, default: 5)
+- **Height**: Height of the cylinder (range: 1-100, default: 10)
+- **Segments**: Number of points along the spiral (range: 1-100, default: 36)
+- **Turns**: Number of complete rotations (range: 0.1-10, default: 2)
+- **Direction**: Spiral direction (clockwise/counter-clockwise, default: clockwise)
+- **Plane Angle**: Rotation angle of the cylinder plane (range: 0-360°, default: 0°)
+- **Plane Axis**: Axis for plane rotation (X/Y/Z-Axis, default: X-Axis)
+
+### 6. Grid
+
+Creates rectangular grid patterns with points arranged in rows and columns.
+
+**Parameters:**
+
+- **Center Point (X, Y, Z)**: Center of the grid (default: 0, 0, 0)
+- **Rows**: Number of rows (range: 2-20, default: 3)
+- **Columns**: Number of columns (range: 2-20, default: 3)
+- **Spacing**: Distance between grid points (range: 1-10, default: 4)
+- **Step Amount**: Vertical step between sequential points (range: 0.1-10, default: 2)
+- **Floors**: Number of grid floors/levels (range: 1-10, default: 1)
+
+### 7. Maze (2D)
+
+Generates 2D maze structures using wall pieces.
+
+**Parameters:**
+
+- **Cell Length**: Length of each maze cell (range: 1-20, default: 4)
+- **Wall Width**: Width of maze walls (range: 1-10, default: 1)
+- **Wall Height**: Height of maze walls (range: 1-20, default: 6)
+- **Grid Width**: Number of cells horizontally (range: 2-50, default: 5)
+- **Grid Height**: Number of cells vertically (optional, defaults to Grid Width)
+
+### 8. 3D Maze
+
+Generates 3D maze structures with walls and floors across multiple levels.
+
+**Parameters:**
+
+- **Cell Length**: Length of each maze cell (range: 1-20, default: 4)
+- **Wall Width**: Width of maze walls (range: 1-10, default: 1)
+- **Wall Height**: Height of maze walls (range: 1-20, default: 6)
+- **Floor Piece Length**: Length of floor pieces (range: 1-20, default: 4)
+- **Floor Piece Width**: Width of floor pieces (range: 1-20, default: 4)
+- **Grid Width**: Number of cells horizontally (range: 2-20, default: 3)
+- **Grid Height**: Number of cells vertically (optional, defaults to Grid Width)
+- **Number of Floors**: Number of maze levels (range: 2-10, default: 2)
 
 ## Usage
 
-1. Open `index.html` in a web browser.
-2. Select the shape type and input the required parameters.
-3. Click "Generate" to visualize the shape.
-4. Upload a MakePlace design JSON file.
-5. Click "Process Design" to apply the shape to the design.
-6. Download the processed JSON file and reimport it into MakePlace for further adjustments.
+### Running the Application
 
-## Dependencies
+1. Open `index.html` in a web browser
+2. For development with ES6 modules, use a local web server:
+   - `python -m http.server` (Python 3)
+   - `python -m SimpleHTTPServer` (Python 2)
+   - VS Code Live Server extension
 
-- [Three.js](https://threejs.org/) for 3D rendering.
-- [MakePlace](https://makeplace.app/) for design files.
+### Creating Patterns
+
+1. **Select Shape Type**: Choose from the 8 available shape types
+2. **Configure Parameters**: Adjust parameters for your selected shape
+3. **Generate Pattern**: Click "Generate" to create and visualize the pattern
+4. **View 3D Preview**: Use mouse controls to rotate, zoom, and pan the 3D scene
+5. **Reset Camera**: Click "Reset Camera" to return to default view
+
+### Processing MakePlace Files
+
+1. **Upload Design**: Click "Upload Wall/Item Pieces JSON" to select your MakePlace file
+2. **Upload Floor Pieces**: (3D Maze only) Optionally upload floor piece JSON
+3. **Process Design**: Click "Process Design" to apply the pattern to your uploaded design
+4. **Download Result**: Click "Download Processed JSON" to save the final file
+5. **Import to MakePlace**: Load the processed file back into MakePlace
+
+### Tips
+
+- Use smaller values for complex shapes to avoid performance issues
+- Enable "MakePlace Format" before processing for direct compatibility
+- The coordinate display shows all generated points for reference
+- Validation errors appear in red text below parameter inputs
+- Camera controls: Left-click drag to rotate, scroll to zoom, right-click drag to pan
+
+## Technical Details
+
+### Architecture
+
+- **Vanilla JavaScript**: No build process required
+- **ES6 Modules**: Modern modular architecture
+- **Three.js**: 3D visualization and rendering
+- **Input Validation**: Comprehensive parameter validation with user feedback
+
+### File Structure
+
+```
+├── index.html          # Main application file
+├── script.js           # Application entry point
+├── scene.js            # Three.js scene management
+├── modules/            # Modular ES6 architecture
+│   ├── shapes/         # Shape generation classes
+│   ├── ui/             # UI management components
+│   └── utils/          # Utilities and constants
+├── tests/              # Testing framework
+```
+
+### Dependencies
+
+- [Three.js r128](https://threejs.org/) - 3D rendering and visualization
+- [MakePlace](https://makeplace.app/) - Final Fantasy XIV housing design tool
+
+### Browser Compatibility
+
+- Modern browsers with ES6 module support
+- Chrome, Firefox, Safari, Edge (recent versions)
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is released under the Unlicense (public domain). See the project files for details.
