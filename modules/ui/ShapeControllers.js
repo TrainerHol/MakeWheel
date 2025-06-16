@@ -419,9 +419,12 @@ export class ShapeControllers {
       roomDrawingBtn.textContent = "Enter Drawing Mode";
     }
     
-    // Clean up room state when switching shapes
-    if (this.room) {
-      this.room.ensureCorrectInitialState();
+    // Room cleanup is handled by wheel.clearPoints()
+    
+    // Re-enable generate button when switching away from room
+    const generateBtn = document.getElementById("generateBtn");
+    if (generateBtn) {
+      generateBtn.disabled = false;
     }
   }
 

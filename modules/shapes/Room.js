@@ -1050,20 +1050,15 @@ export class Room extends BaseShape {
    * Creates a 3D floor mesh like in the maze system
    */
   createFloorMesh(position, length, height, width, rotation = 0) {
-    const isRotated = Math.abs(rotation) > 0.1;
-    
-    console.log(`Creating floor: ${length}x${width} rotated: ${isRotated}`);
-    
     // Use dimensions as-is (algorithm already handles the swapping)
     // Three.js BoxGeometry: (width, height, depth) where width=X, height=Y, depth=Z
     const geometry = new THREE.BoxGeometry(length, height, width);
     
-    // Make rotated pieces visually distinct with different color for debugging
     const material = new THREE.MeshPhongMaterial({
-      color: isRotated ? 0x00ff00 : COLORS.FLOOR, // Green for rotated, normal color for unrotated
+      color: COLORS.FLOOR,
       flatShading: true,
       shininess: 0,
-      emissive: isRotated ? 0x003300 : COLORS.FLOOR_EMISSIVE,
+      emissive: COLORS.FLOOR_EMISSIVE,
       specular: COLORS.FLOOR_SPECULAR,
     });
 
@@ -1078,10 +1073,10 @@ export class Room extends BaseShape {
       rotationY: rotation  
     };
 
-    // Create edges with different color for rotated pieces
+    // Create edges
     const edges = new THREE.EdgesGeometry(geometry);
     const edgesMaterial = new THREE.LineBasicMaterial({
-      color: isRotated ? 0x00ff00 : COLORS.FLOOR_EDGE,
+      color: COLORS.FLOOR_EDGE,
       linewidth: 2,
     });
     const edgesMesh = new THREE.LineSegments(edges, edgesMaterial);
@@ -1106,6 +1101,13 @@ export class Room extends BaseShape {
    * Ensures the room is in the correct initial state
    */
   ensureCorrectInitialState() {
+    // CRITICAL: Restore any hidden objects BEFORE clearing the array
+    this.hiddenObjects.forEach(item => {
+      if (item.object && item.wasVisible) {
+        item.object.visible = true;
+      }
+    });
+    
     // Force room to correct initial state
     this.isDrawingMode = false;
     
@@ -1115,7 +1117,7 @@ export class Room extends BaseShape {
     // Force complete drawing grid cleanup
     this.forceRemoveDrawingGrid();
     
-    // Clear all state
+    // Clear all state AFTER restoring objects
     this.hiddenObjects = [];
     
     // Force normal grid to be visible
@@ -1131,9 +1133,24 @@ export class Room extends BaseShape {
   clearPoints() {
     super.clearPoints();
     
-    // Ensure correct initial state
-    this.ensureCorrectInitialState();
-    
+    // Clear all generated room elements
     this.clearGeneratedElements();
+    
+    // Note: Don't clear selectedCells here - they're needed for re-generation
+    // selectedCells should only be cleared when switching away from Room mode
+    
+    // Ensure correct initial state (drawing grid, listeners, etc.)
+    this.ensureCorrectInitialState();
+  }
+
+  /**
+   * Completely resets room to initial state (used when switching shape types)
+   */
+  completeReset() {
+    // Clear room-specific elements without calling super.clearPoints()
+    // This avoids interfering with the parent wheel's BaseShape functionality
+    this.clearGeneratedElements();
+    this.selectedCells.clear();
+    this.ensureCorrectInitialState();
   }
 }

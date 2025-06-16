@@ -166,6 +166,7 @@ export class Wheel {
     this.sphericalSpiralShape.clearPoints();
     this.cylinderSpiralShape.clearPoints();
     this.gridShape.clearPoints();
+    this.roomShape.completeReset();
     
     // Reset legacy properties
     this.point1 = null;
