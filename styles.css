@@ -71,3 +71,223 @@ h2 {
 #info div {
   margin-bottom: 5px;
 }
+
+body.pixel-art-mode {
+  background: #000000;
+}
+
+body.pixel-art-mode #info {
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  max-height: none;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+body.pixel-art-mode #info div {
+  margin-bottom: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#pixelArtInputs {
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  column-gap: 12px;
+  row-gap: 8px;
+}
+
+#pixelArtInputs input[type="text"] {
+  width: 170px;
+}
+
+.pixel-art-custom-furniture input[type="number"] {
+  width: 76px;
+}
+
+.pixel-art-custom-furniture input[type="text"] {
+  width: 155px;
+}
+
+#pixelArtInputs h3 {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+}
+
+.pixel-art-controls {
+  display: flex;
+  grid-column: 1;
+  grid-row: 2;
+  min-height: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pixel-art-control-row,
+.pixel-art-import-options,
+.pixel-art-toolbar,
+.pixel-art-current-color {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pixel-art-import-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pixel-art-control-row input[type="file"] {
+  max-width: 205px;
+}
+
+.pixel-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-top: 0;
+  padding: 6px;
+}
+
+.pixel-icon-button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pixel-icon-button:focus-visible,
+.pixel-palette-swatch:focus-visible,
+.pixel-art-cell:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.pixel-icon-button.active,
+.pixel-palette-swatch.active {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.pixel-icon-button:disabled,
+#pixelArtUndoBtn:disabled,
+#pixelArtRedoBtn:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.pixel-art-current-color {
+  min-height: 34px;
+}
+
+#pixelArtColorPreview {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 3px;
+}
+
+.pixel-art-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 18px);
+  gap: 4px;
+  align-content: start;
+  max-height: none;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+}
+
+.pixel-palette-swatch {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  margin-top: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.pixel-art-workspace {
+  display: flex;
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pixel-art-grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background-color: #000000;
+  touch-action: none;
+  user-select: none;
+}
+
+.pixel-art-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0;
+}
+
+.pixel-art-cell.empty {
+  background-color: #000000;
+  background-image: none;
+}
+
+.pixel-art-status {
+  font-weight: bold;
+  color: #8fd8ff;
+}
+
+.pixel-art-footer {
+  display: flex;
+  grid-column: 1;
+  grid-row: 3;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  min-height: 20px;
+}
+
+.pixel-art-import-status {
+  color: #cfefff;
+}
+
+.pixel-art-import-status.error {
+  color: #ffb6b6;
+}

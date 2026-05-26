@@ -2,6 +2,7 @@ import { ShapeControllers } from './ShapeControllers.js';
 import { FileHandlers } from './FileHandlers.js';
 import { CoordinatesDisplay } from './CoordinatesDisplay.js';
 import { CameraControls } from './CameraControls.js';
+import { PixelArtEditor } from './PixelArtEditor.js';
 
 /**
  * Main UI coordinator that manages all UI components
@@ -19,6 +20,7 @@ export class UIManager {
     this.fileHandlers = new FileHandlers();
     this.coordinatesDisplay = new CoordinatesDisplay(wheel, maze, maze3d);
     this.cameraControls = new CameraControls(sceneManager);
+    this.pixelArtEditor = new PixelArtEditor();
   }
 
   /**
@@ -27,6 +29,7 @@ export class UIManager {
   init() {
     this.setupEventListeners();
     this.cameraControls.init();
+    this.pixelArtEditor.init();
     
     // Connect camera controls to scene manager
     this.sceneManager.setCameraControls(this.cameraControls);
@@ -145,6 +148,8 @@ export class UIManager {
         case "room":
           success = this.shapeControllers.generateRoom();
           break;
+        case "pixelArt":
+          return;
         default:
           console.warn(`Unknown shape type: ${this.shapeType}`);
           return;
@@ -179,11 +184,37 @@ export class UIManager {
   updateUIForShape() {
     this.shapeControllers.updateUIForShape(this.shapeType);
     this.coordinatesDisplay.clear();
+    this.pixelArtEditor.setActive(this.shapeType === "pixelArt");
+    document.body.classList.toggle("pixel-art-mode", this.shapeType === "pixelArt");
     
     // Hide/show generate button based on shape type
     const generateBtn = document.getElementById("generateBtn");
     if (generateBtn) {
-      generateBtn.style.display = this.shapeType === "room" ? "none" : "block";
+      generateBtn.style.display = this.shapeType === "room" || this.shapeType === "pixelArt" ? "none" : "block";
+    }
+
+    const resetCameraBtn = document.getElementById("resetCamera");
+    if (resetCameraBtn) {
+      resetCameraBtn.style.display = this.shapeType === "pixelArt" ? "none" : "inline-block";
+    }
+
+    const outputOptions = document.getElementById("outputOptions");
+    if (outputOptions) {
+      outputOptions.style.display = this.shapeType === "pixelArt" ? "none" : "block";
+    }
+
+    const fileProcessingSection = document.getElementById("fileProcessingSection");
+    if (fileProcessingSection) {
+      fileProcessingSection.style.display = this.shapeType === "pixelArt" ? "none" : "block";
+    }
+
+    const coordinates = document.getElementById("coordinates");
+    if (coordinates) {
+      coordinates.style.display = this.shapeType === "pixelArt" ? "none" : "block";
+    }
+
+    if (this.sceneManager.renderer && this.sceneManager.renderer.domElement) {
+      this.sceneManager.renderer.domElement.style.display = this.shapeType === "pixelArt" ? "none" : "block";
     }
   }
 
