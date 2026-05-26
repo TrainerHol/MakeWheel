@@ -392,6 +392,7 @@ export class ShapeControllers {
       conicalSpiralInputs: "conicalSpiral",
       sphericalSpiralInputs: "sphericalSpiral",
       gridInputs: "grid",
+      pixelArtInputs: "pixelArt",
       mazeInputs: "maze",
       maze3dInputs: "maze3d",
       cylinderSpiralInputs: "cylinderSpiral",
