@@ -18,6 +18,7 @@
           <option value="sphericalSpiral">Spherical Spiral</option>
           <option value="grid">Grid</option>
           <option value="pixelArt">Pixel Art</option>
+          <option value="voxelArt">Voxel Art</option>
           <option value="maze">Maze</option>
           <option value="maze3d">3D Maze</option>
           <option value="cylinderSpiral">Cylinder Spiral</option>
@@ -208,6 +209,10 @@
               <input type="checkbox" id="pixelArtRemoveBackground" />
               Remove background
             </label>
+            <label>
+              <input type="checkbox" id="pixelArtPreserveShading" checked />
+              Preserve shading
+            </label>
           </div>
           <div class="pixel-art-toolbar" role="toolbar" aria-label="Pixel art tools">
             <button class="pixel-icon-button" type="button" data-pixel-tool="pencil" aria-label="Pencil tool" title="Pencil tool">
@@ -260,6 +265,152 @@
         <div class="pixel-art-footer">
           <div id="pixelArtStatus" class="pixel-art-status"></div>
           <div id="pixelArtImportStatus" class="pixel-art-import-status" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div id="voxelArtInputs" class="voxel-art-tool" style="display: none">
+        <h3>Voxel Art</h3>
+        <div class="voxel-art-controls">
+          <div class="voxel-art-control-row">
+            <label for="voxelArtDesignName">Design Name:</label>
+            <input type="text" id="voxelArtDesignName" value="Voxel Art" />
+            <label for="voxelArtFurnitureType">Furniture Type:</label>
+            <select id="voxelArtFurnitureType"></select>
+          </div>
+          <div id="voxelArtCustomFurnitureInputs" class="voxel-art-control-row voxel-art-custom-furniture" style="display: none">
+            <label for="voxelArtCustomItemId">Item ID:</label>
+            <input type="number" id="voxelArtCustomItemId" min="1" step="1" />
+            <label for="voxelArtCustomItemName">Name:</label>
+            <input type="text" id="voxelArtCustomItemName" />
+            <label for="voxelArtCustomXSpacing">X Step:</label>
+            <input type="number" id="voxelArtCustomXSpacing" min="0.0001" value="70" step="0.1" />
+            <label for="voxelArtCustomDepthSpacing">Depth Step:</label>
+            <input type="number" id="voxelArtCustomDepthSpacing" min="0.0001" value="70" step="0.1" />
+            <label for="voxelArtCustomHeightSpacing">Height Step:</label>
+            <input type="number" id="voxelArtCustomHeightSpacing" min="0.0001" value="70" step="0.1" />
+          </div>
+          <div class="voxel-art-control-row">
+            <label for="voxelArtSizeX">X:</label>
+            <input type="number" id="voxelArtSizeX" min="1" max="32" value="8" step="1" />
+            <label for="voxelArtSizeY">Y:</label>
+            <input type="number" id="voxelArtSizeY" min="1" max="32" value="8" step="1" />
+            <label for="voxelArtSizeZ">Z:</label>
+            <input type="number" id="voxelArtSizeZ" min="1" max="32" value="8" step="1" />
+            <button id="voxelArtResizeBtn" class="pixel-icon-button" type="button" aria-label="Apply voxel dimensions" title="Apply voxel dimensions">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              <span class="sr-only">Apply Size</span>
+            </button>
+          </div>
+          <div class="voxel-art-control-row">
+            <label for="voxelArtFileInput">VOX File:</label>
+            <input type="file" id="voxelArtFileInput" accept=".vox" />
+            <button id="voxelArtImportBtn" class="pixel-icon-button" type="button" aria-label="Import VOX file" title="Import VOX file">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12" />
+                <path d="m7 8 5-5 5 5" />
+                <path d="M5 17v3h14v-3" />
+              </svg>
+              <span class="sr-only">Import VOX</span>
+            </button>
+            <button id="voxelArtNewBtn" class="pixel-icon-button" type="button" aria-label="New empty voxel model" title="New empty voxel model">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+              <span class="sr-only">New Model</span>
+            </button>
+            <button id="voxelArtClearInsideBtn" class="pixel-icon-button" type="button" aria-label="Clear hidden interior voxels" title="Clear hidden interior voxels">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 8 12 4l8 4-8 4-8-4z" />
+                <path d="M4 8v8l8 4 8-4V8" />
+                <path d="M12 12v8" />
+                <path d="m9 9 6 6" />
+                <path d="m15 9-6 6" />
+              </svg>
+              <span class="sr-only">Clear Inside</span>
+            </button>
+            <button id="voxelArtDownloadBtn" class="pixel-icon-button" type="button" aria-label="Download voxel art JSON" title="Download voxel art JSON">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12" />
+                <path d="m7 10 5 5 5-5" />
+                <path d="M5 20h14" />
+              </svg>
+              <span class="sr-only">Download Voxel Art JSON</span>
+            </button>
+          </div>
+          <div class="voxel-art-toolbar" role="toolbar" aria-label="Voxel art tools">
+            <button class="pixel-icon-button" type="button" data-voxel-tool="add" aria-label="Add voxel tool" title="Add voxel (T)">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+              <span class="sr-only">Add</span>
+            </button>
+            <button class="pixel-icon-button" type="button" data-voxel-tool="erase" aria-label="Erase voxel tool" title="Erase voxel (R)">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m7 21-5-5L14 4a3 3 0 0 1 4 0l2 2a3 3 0 0 1 0 4L9 21H7z" />
+                <path d="m12 8 6 6" />
+              </svg>
+              <span class="sr-only">Erase</span>
+            </button>
+            <button class="pixel-icon-button" type="button" data-voxel-tool="paint" aria-label="Paint voxel tool" title="Paint voxel (G)">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m16 3 5 5L8 21H3v-5L16 3z" />
+                <path d="m14 5 5 5" />
+              </svg>
+              <span class="sr-only">Paint</span>
+            </button>
+            <button class="pixel-icon-button" type="button" data-voxel-tool="pick" aria-label="Pick voxel color" title="Pick color (Alt+Click)">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m2 22 5-2 11-11" />
+                <path d="m14 4 6 6" />
+                <path d="m15 3 6 6" />
+              </svg>
+              <span class="sr-only">Pick</span>
+            </button>
+            <button id="voxelArtUndoBtn" class="pixel-icon-button" type="button" aria-label="Undo" title="Undo">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 14 4 9l5-5" />
+                <path d="M4 9h11a5 5 0 1 1 0 10h-2" />
+              </svg>
+              <span class="sr-only">Undo</span>
+            </button>
+            <button id="voxelArtRedoBtn" class="pixel-icon-button" type="button" aria-label="Redo" title="Redo">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m15 14 5-5-5-5" />
+                <path d="M20 9H9a5 5 0 1 0 0 10h2" />
+              </svg>
+              <span class="sr-only">Redo</span>
+            </button>
+          </div>
+          <div class="voxel-art-options">
+            <label>
+              <input type="checkbox" id="voxelArtRemoveHidden" checked />
+              Remove hidden voxels
+            </label>
+            <label>
+              <input type="checkbox" id="voxelArtPreserveShading" checked />
+              Preserve shading
+            </label>
+            <label id="voxelArtRotateRow">
+              <input type="checkbox" id="voxelArtRotateClosestToEdge" />
+              Rotate closest to edge
+            </label>
+          </div>
+          <div id="voxelArtPalette" class="pixel-art-palette voxel-art-palette"></div>
+          <div class="voxel-art-current-color">
+            <span id="voxelArtColorPreview"></span>
+            <span id="voxelArtColorLabel"></span>
+          </div>
+        </div>
+        <div class="voxel-art-workspace">
+          <div id="voxelArtViewport" class="voxel-art-viewport" aria-label="Voxel art editor"></div>
+        </div>
+        <div class="voxel-art-footer">
+          <div id="voxelArtStatus" class="pixel-art-status"></div>
+          <div id="voxelArtImportStatus" class="pixel-art-import-status" role="status" aria-live="polite"></div>
         </div>
       </div>
 

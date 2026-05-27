@@ -72,11 +72,13 @@ h2 {
   margin-bottom: 5px;
 }
 
-body.pixel-art-mode {
+body.pixel-art-mode,
+body.voxel-art-mode {
   background: #000000;
 }
 
-body.pixel-art-mode #info {
+body.pixel-art-mode #info,
+body.voxel-art-mode #info {
   top: 10px;
   left: 10px;
   right: 10px;
@@ -89,7 +91,8 @@ body.pixel-art-mode #info {
   box-sizing: border-box;
 }
 
-body.pixel-art-mode #info div {
+body.pixel-art-mode #info div,
+body.voxel-art-mode #info div {
   margin-bottom: 0;
 }
 
@@ -105,7 +108,8 @@ body.pixel-art-mode #info div {
   border: 0;
 }
 
-#pixelArtInputs {
+#pixelArtInputs,
+#voxelArtInputs {
   flex: 1;
   min-height: 0;
   grid-template-columns: 320px minmax(0, 1fr);
@@ -114,7 +118,15 @@ body.pixel-art-mode #info div {
   row-gap: 8px;
 }
 
+#voxelArtInputs {
+  grid-template-columns: 360px minmax(0, 1fr);
+}
+
 #pixelArtInputs input[type="text"] {
+  width: 170px;
+}
+
+.voxel-art-tool input[type="text"] {
   width: 170px;
 }
 
@@ -126,13 +138,23 @@ body.pixel-art-mode #info div {
   width: 155px;
 }
 
-#pixelArtInputs h3 {
+.voxel-art-custom-furniture input[type="number"] {
+  width: 76px;
+}
+
+.voxel-art-custom-furniture input[type="text"] {
+  width: 155px;
+}
+
+#pixelArtInputs h3,
+#voxelArtInputs h3 {
   grid-column: 1;
   grid-row: 1;
   margin: 0;
 }
 
-.pixel-art-controls {
+.pixel-art-controls,
+.voxel-art-controls {
   display: flex;
   grid-column: 1;
   grid-row: 2;
@@ -144,20 +166,28 @@ body.pixel-art-mode #info div {
 .pixel-art-control-row,
 .pixel-art-import-options,
 .pixel-art-toolbar,
-.pixel-art-current-color {
+.pixel-art-current-color,
+.voxel-art-current-color,
+.voxel-art-control-row,
+.voxel-art-toolbar,
+.voxel-art-options,
+.voxel-art-footer {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 
-.pixel-art-import-options label {
+.pixel-art-import-options label,
+.voxel-art-options label,
+.voxel-art-control-row label {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.pixel-art-control-row input[type="file"] {
+.pixel-art-control-row input[type="file"],
+.voxel-art-control-row input[type="file"] {
   max-width: 205px;
 }
 
@@ -183,7 +213,8 @@ body.pixel-art-mode #info div {
 
 .pixel-icon-button:focus-visible,
 .pixel-palette-swatch:focus-visible,
-.pixel-art-cell:focus-visible {
+.pixel-art-cell:focus-visible,
+.voxel-art-viewport:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
@@ -196,16 +227,20 @@ body.pixel-art-mode #info div {
 
 .pixel-icon-button:disabled,
 #pixelArtUndoBtn:disabled,
-#pixelArtRedoBtn:disabled {
+#pixelArtRedoBtn:disabled,
+#voxelArtUndoBtn:disabled,
+#voxelArtRedoBtn:disabled {
   cursor: default;
   opacity: 0.45;
 }
 
-.pixel-art-current-color {
+.pixel-art-current-color,
+.voxel-art-current-color {
   min-height: 34px;
 }
 
-#pixelArtColorPreview {
+#pixelArtColorPreview,
+#voxelArtColorPreview {
   display: inline-block;
   width: 24px;
   height: 24px;
@@ -234,7 +269,8 @@ body.pixel-art-mode #info div {
   border-radius: 2px;
 }
 
-.pixel-art-workspace {
+.pixel-art-workspace,
+.voxel-art-workspace {
   display: flex;
   grid-column: 2;
   grid-row: 1 / 4;
@@ -290,4 +326,37 @@ body.pixel-art-mode #info div {
 
 .pixel-art-import-status.error {
   color: #ffb6b6;
+}
+
+.voxel-art-footer {
+  grid-column: 1;
+  grid-row: 3;
+  min-height: 20px;
+}
+
+.voxel-art-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #000000;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.voxel-art-viewport canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.voxel-art-palette {
+  grid-template-columns: repeat(auto-fill, 16px);
+}
+
+.voxel-art-palette .pixel-palette-swatch {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
 }
