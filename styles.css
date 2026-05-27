@@ -73,7 +73,8 @@ h2 {
 }
 
 body.pixel-art-mode,
-body.voxel-art-mode {
+body.voxel-art-mode,
+body.gradient-dye-mode {
   background: #000000;
 }
 
@@ -122,6 +123,23 @@ body.voxel-art-mode #info div {
   grid-template-columns: 360px minmax(0, 1fr);
 }
 
+#gradientDyeInputs {
+  max-width: 380px;
+}
+
+#gradientDyeInputs h3 {
+  margin: 0 0 8px;
+}
+
+#gradientDyeInputs input[type="number"] {
+  width: 64px;
+}
+
+#gradientDyeInputs .pixel-art-status,
+#gradientDyeInputs .pixel-art-import-status {
+  margin-top: 8px;
+}
+
 #pixelArtInputs input[type="text"] {
   width: 170px;
 }
@@ -165,13 +183,17 @@ body.voxel-art-mode #info div {
 
 .pixel-art-control-row,
 .pixel-art-import-options,
+.pixel-art-gradient-controls,
 .pixel-art-toolbar,
 .pixel-art-current-color,
 .voxel-art-current-color,
 .voxel-art-control-row,
+.voxel-art-gradient-controls,
 .voxel-art-toolbar,
 .voxel-art-options,
-.voxel-art-footer {
+.voxel-art-footer,
+.gradient-dye-control-row,
+.gradient-dye-gradient-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -179,15 +201,34 @@ body.voxel-art-mode #info div {
 }
 
 .pixel-art-import-options label,
+.pixel-art-gradient-controls label,
 .voxel-art-options label,
-.voxel-art-control-row label {
+.voxel-art-gradient-controls label,
+.voxel-art-control-row label,
+.gradient-dye-gradient-controls label {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
+.pixel-art-gradient-controls select,
+.voxel-art-gradient-controls select,
+.gradient-dye-gradient-controls select {
+  width: 128px;
+}
+
+.gradient-color-preview {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 2px;
+}
+
 .pixel-art-control-row input[type="file"],
-.voxel-art-control-row input[type="file"] {
+.voxel-art-control-row input[type="file"],
+.gradient-dye-control-row input[type="file"] {
   max-width: 205px;
 }
 
@@ -211,6 +252,37 @@ body.voxel-art-mode #info div {
   stroke-linejoin: round;
 }
 
+.hold-confirm-button {
+  position: relative;
+  overflow: hidden;
+  background-color: #8f2727;
+  --hold-progress: 0;
+}
+
+.hold-confirm-button:hover {
+  background-color: #a83131;
+}
+
+.hold-confirm-button::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: rgba(255, 255, 255, 0.28);
+  transform: scaleX(var(--hold-progress));
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.hold-confirm-button.is-holding {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.hold-confirm-button svg {
+  position: relative;
+  z-index: 1;
+}
+
 .pixel-icon-button:focus-visible,
 .pixel-palette-swatch:focus-visible,
 .pixel-art-cell:focus-visible,
@@ -229,7 +301,8 @@ body.voxel-art-mode #info div {
 #pixelArtUndoBtn:disabled,
 #pixelArtRedoBtn:disabled,
 #voxelArtUndoBtn:disabled,
-#voxelArtRedoBtn:disabled {
+#voxelArtRedoBtn:disabled,
+#gradientDyeDownloadBtn:disabled {
   cursor: default;
   opacity: 0.45;
 }

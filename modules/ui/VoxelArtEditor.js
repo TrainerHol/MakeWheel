@@ -23,6 +23,11 @@ import {
   VOXEL_ART_FURNITURE,
   createVoxelArtFurniture,
 } from "../utils/voxelArtFurniture.js";
+import { attachHoldToConfirm } from "../utils/holdToConfirm.js";
+import {
+  mapGradientToVoxels,
+  parseGradientAngle,
+} from "../utils/gradientFill.js";
 
 const MAX_HISTORY = 100;
 const TOOL_IDS = ["add", "erase", "paint", "pick"];
@@ -52,6 +57,7 @@ export class VoxelArtEditor {
       pitch: Math.PI / 5,
       distance: 18,
     };
+    this.cancelClearHold = null;
   }
 
   init() {
@@ -59,6 +65,7 @@ export class VoxelArtEditor {
     if (!this.elements.root) return;
 
     this.populateFurnitureOptions();
+    this.populateGradientOptions();
     this.renderPalette();
     this.bindEvents();
     this.setTool(this.currentTool);
@@ -72,6 +79,10 @@ export class VoxelArtEditor {
   setActive(isActive) {
     this.active = isActive;
     if (!this.elements.root) return;
+
+    if (!isActive) {
+      this.cancelClearHold?.();
+    }
 
     this.elements.root.style.display = isActive ? "grid" : "none";
     if (isActive) {
@@ -105,6 +116,7 @@ export class VoxelArtEditor {
       downloadBtn: document.getElementById("voxelArtDownloadBtn"),
       undoBtn: document.getElementById("voxelArtUndoBtn"),
       redoBtn: document.getElementById("voxelArtRedoBtn"),
+      clearBtn: document.getElementById("voxelArtClearBtn"),
       removeHidden: document.getElementById("voxelArtRemoveHidden"),
       preserveShading: document.getElementById("voxelArtPreserveShading"),
       rotateRow: document.getElementById("voxelArtRotateRow"),
@@ -113,6 +125,13 @@ export class VoxelArtEditor {
       palette: document.getElementById("voxelArtPalette"),
       colorPreview: document.getElementById("voxelArtColorPreview"),
       colorLabel: document.getElementById("voxelArtColorLabel"),
+      gradientStart: document.getElementById("voxelArtGradientStart"),
+      gradientStartPreview: document.getElementById("voxelArtGradientStartPreview"),
+      gradientEnd: document.getElementById("voxelArtGradientEnd"),
+      gradientEndPreview: document.getElementById("voxelArtGradientEndPreview"),
+      gradientYaw: document.getElementById("voxelArtGradientYaw"),
+      gradientPitch: document.getElementById("voxelArtGradientPitch"),
+      gradientApplyBtn: document.getElementById("voxelArtGradientApplyBtn"),
       status: document.getElementById("voxelArtStatus"),
       importStatus: document.getElementById("voxelArtImportStatus"),
       toolButtons: Array.from(document.querySelectorAll("[data-voxel-tool]")),
@@ -134,6 +153,30 @@ export class VoxelArtEditor {
     customOption.value = CUSTOM_VOXEL_FURNITURE_ID;
     customOption.textContent = "Custom Furniture";
     this.elements.furnitureSelect.appendChild(customOption);
+  }
+
+  populateGradientOptions() {
+    this.populateColorSelect(this.elements.gradientStart, PIXEL_ART_COLORS[0]?.id);
+    this.populateColorSelect(
+      this.elements.gradientEnd,
+      PIXEL_ART_COLORS.find((color) => color.id === "jet-black")?.id || PIXEL_ART_COLORS.at(-1)?.id
+    );
+    this.updateGradientColorPreviews();
+  }
+
+  populateColorSelect(select, selectedColorId) {
+    if (!select) return;
+
+    select.innerHTML = "";
+    PIXEL_ART_COLORS.forEach((color) => {
+      const option = document.createElement("option");
+      option.value = color.id;
+      option.textContent = color.name;
+      select.appendChild(option);
+    });
+    if (selectedColorId) {
+      select.value = selectedColorId;
+    }
   }
 
   renderPalette() {
@@ -191,8 +234,28 @@ export class VoxelArtEditor {
       this.redo();
     });
 
+    this.elements.gradientApplyBtn?.addEventListener("click", () => {
+      this.applyGradientFill();
+    });
+
+    this.elements.gradientStart?.addEventListener("change", () => {
+      this.updateGradientColorPreviews();
+    });
+
+    this.elements.gradientEnd?.addEventListener("change", () => {
+      this.updateGradientColorPreviews();
+    });
+
+    this.cancelClearHold = attachHoldToConfirm(this.elements.clearBtn, () => {
+      this.clearModel();
+    });
+
     this.elements.fileInput?.addEventListener("change", () => {
-      this.setImportStatus("");
+      if (this.elements.fileInput.files?.[0]) {
+        this.importVoxFromFile();
+      } else {
+        this.setImportStatus("");
+      }
     });
 
     this.elements.removeHidden?.addEventListener("change", () => {
@@ -650,9 +713,18 @@ export class VoxelArtEditor {
       this.setImportStatus("Importing VOX file...");
       const parsedModel = parseVoxFile(await file.arrayBuffer());
       const snapshot = this.snapshot();
-      this.model = createVoxelModelFromParsedVox(parsedModel, {
+      const importedModel = createVoxelModelFromParsedVox(parsedModel, {
         preserveShading: Boolean(this.elements.preserveShading?.checked),
       });
+      const importedVoxels = getVoxelArray(importedModel);
+      const shouldRemoveHidden = Boolean(this.elements.removeHidden?.checked);
+      const visibleVoxels = shouldRemoveHidden
+        ? removeHiddenVoxelsFromList(importedVoxels, importedModel.size)
+        : importedVoxels;
+      const removedHiddenCount = importedVoxels.length - visibleVoxels.length;
+      this.model = shouldRemoveHidden
+        ? this.createModelFromVoxels(importedModel.size, visibleVoxels)
+        : importedModel;
       this.commitSnapshot(snapshot);
       this.syncSizeInputs();
       this.clearHover();
@@ -661,7 +733,10 @@ export class VoxelArtEditor {
       this.updateStatus();
 
       const paletteMessage = parsedModel.hasCustomPalette ? "with embedded palette" : "with default palette";
-      this.setImportStatus(`Imported ${parsedModel.size.x} x ${parsedModel.size.y} x ${parsedModel.size.z}, ${parsedModel.voxels.length} voxels ${paletteMessage}.`);
+      const hiddenMessage = removedHiddenCount > 0
+        ? ` Removed ${removedHiddenCount} hidden interior voxel${removedHiddenCount === 1 ? "" : "s"}.`
+        : "";
+      this.setImportStatus(`Imported ${parsedModel.size.x} x ${parsedModel.size.y} x ${parsedModel.size.z}, ${parsedModel.voxels.length} voxels ${paletteMessage}.${hiddenMessage}`);
       this.elements.fileInput.value = "";
       return true;
     } catch (error) {
@@ -696,6 +771,62 @@ export class VoxelArtEditor {
     this.updateSceneFromModel();
     this.updateStatus();
     this.setImportStatus(`Removed ${removedCount} hidden interior voxel${removedCount === 1 ? "" : "s"}.`);
+    return true;
+  }
+
+  createModelFromVoxels(size, voxels) {
+    const model = createEmptyVoxelModel(size);
+    voxels.forEach((voxel) => {
+      setVoxel(model, createVoxel(voxel));
+    });
+    return model;
+  }
+
+  clearModel() {
+    const voxelCount = countVoxels(this.model);
+    if (voxelCount < 1) {
+      this.setImportStatus("Model is already clear.");
+      return false;
+    }
+
+    const snapshot = this.snapshot();
+    this.model = createEmptyVoxelModel(this.model.size);
+    this.commitSnapshot(snapshot);
+    this.clearHover();
+    this.updateSceneFromModel();
+    this.updateStatus();
+    this.setImportStatus(`Cleared ${voxelCount} voxel${voxelCount === 1 ? "" : "s"}.`);
+    return true;
+  }
+
+  applyGradientFill() {
+    const voxels = getVoxelArray(this.model);
+    if (voxels.length < 1) {
+      this.setImportStatus("No voxels to gradient.");
+      return false;
+    }
+
+    const result = mapGradientToVoxels(voxels, {
+      startColor: this.getPaletteColorById(this.elements.gradientStart?.value),
+      endColor: this.getPaletteColorById(this.elements.gradientEnd?.value),
+      yawDegrees: parseGradientAngle(this.elements.gradientYaw?.value, 0),
+      pitchDegrees: parseGradientAngle(this.elements.gradientPitch?.value, 0),
+      palette: PIXEL_ART_COLORS,
+    });
+    if (!result.changed) return false;
+
+    const snapshot = this.snapshot();
+    const nextModel = createEmptyVoxelModel(this.model.size);
+    result.voxels.forEach((voxel) => {
+      setVoxel(nextModel, createVoxel(voxel));
+    });
+
+    this.model = nextModel;
+    this.commitSnapshot(snapshot);
+    this.clearHover();
+    this.updateSceneFromModel();
+    this.updateStatus();
+    this.setImportStatus(`Applied gradient to ${result.filledCount} voxel${result.filledCount === 1 ? "" : "s"}.`);
     return true;
   }
 
@@ -801,6 +932,19 @@ export class VoxelArtEditor {
     if (this.elements.colorLabel) {
       this.elements.colorLabel.textContent = this.selectedColor.name;
     }
+  }
+
+  updateGradientColorPreviews() {
+    this.updateGradientColorPreview(this.elements.gradientStartPreview, this.elements.gradientStart?.value);
+    this.updateGradientColorPreview(this.elements.gradientEndPreview, this.elements.gradientEnd?.value);
+  }
+
+  updateGradientColorPreview(preview, colorId) {
+    if (!preview) return;
+
+    const color = this.getPaletteColorById(colorId);
+    preview.style.backgroundColor = this.toCssColor(color.hex);
+    preview.title = color.name;
   }
 
   updatePaletteSelection() {
@@ -1043,6 +1187,10 @@ export class VoxelArtEditor {
 
   isPositiveFiniteNumber(value) {
     return Number.isFinite(value) && value > 0;
+  }
+
+  getPaletteColorById(colorId) {
+    return PIXEL_ART_COLORS.find((color) => color.id === colorId) || PIXEL_ART_COLORS[0];
   }
 
   toCssColor(hex) {
