@@ -89,6 +89,7 @@ export class PixelArtEditor {
       importStatus: document.getElementById("pixelArtImportStatus"),
       importAsCanvasSize: document.getElementById("pixelArtImportAsCanvasSize"),
       removeBackground: document.getElementById("pixelArtRemoveBackground"),
+      preserveShading: document.getElementById("pixelArtPreserveShading"),
       toolButtons: Array.from(document.querySelectorAll("[data-pixel-tool]")),
     };
   }
@@ -413,6 +414,7 @@ export class PixelArtEditor {
       const sourceHeight = image.naturalHeight || image.height;
       const importAsCanvasSize = Boolean(this.elements.importAsCanvasSize?.checked);
       const removeBackground = Boolean(this.elements.removeBackground?.checked);
+      const preserveShading = this.elements.preserveShading?.checked !== false;
       const targetSize = importAsCanvasSize
         ? { width: this.width, height: this.height }
         : getImageImportSize(sourceWidth, sourceHeight);
@@ -433,7 +435,7 @@ export class PixelArtEditor {
         context.getImageData(0, 0, targetSize.width, targetSize.height),
         PIXEL_ART_COLORS,
         undefined,
-        { removeBackground }
+        { removeBackground, preserveShading }
       );
 
       this.pushUndo(clonePixelGrid(this.grid));
@@ -445,7 +447,8 @@ export class PixelArtEditor {
       this.renderGrid();
       this.updateStatus();
       const backgroundMessage = removeBackground ? " Background removed from matching edge colors." : "";
-      this.setImportStatus(`Imported ${sourceWidth} x ${sourceHeight} as ${this.width} x ${this.height}.${backgroundMessage}`);
+      const shadingMessage = preserveShading ? " Shading preserved where close palette alternatives were available." : "";
+      this.setImportStatus(`Imported ${sourceWidth} x ${sourceHeight} as ${this.width} x ${this.height}.${backgroundMessage}${shadingMessage}`);
       this.elements.imageInput.value = "";
       return true;
     } catch (error) {

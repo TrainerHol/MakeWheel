@@ -1,4 +1,10 @@
 import { PIXEL_ART_COLORS } from "./dyes.js";
+import {
+  findNearestPaletteColor as findNearestPaletteColorBase,
+  hexToRgb as hexToRgbBase,
+  mapSourceColorsToPalette,
+  rgbKey,
+} from "./colorMapping.js";
 
 export const IMAGE_IMPORT_MAX_SIZE = 24;
 export const IMAGE_IMPORT_ALPHA_THRESHOLD = 128;
@@ -34,6 +40,10 @@ export function imageDataToPixelGrid(
   const backgroundMask = options.removeBackground
     ? createBackgroundMask(imageData, alphaThreshold, options.backgroundTolerance)
     : null;
+  const preserveShading = options.preserveShading !== false;
+  const preservedColorMap = preserveShading
+    ? mapSourceColorsToPalette(getVisibleImageColors(imageData, alphaThreshold, backgroundMask), palette)
+    : null;
 
   for (let row = 0; row < height; row++) {
     const gridRow = [];
@@ -44,12 +54,15 @@ export function imageDataToPixelGrid(
       if (alpha < alphaThreshold || backgroundMask?.[row * width + col]) {
         gridRow.push(null);
       } else {
-        gridRow.push(findNearestPaletteColor(
-          data[offset],
-          data[offset + 1],
-          data[offset + 2],
-          palette
-        ));
+        const sourceColor = {
+          red: data[offset],
+          green: data[offset + 1],
+          blue: data[offset + 2],
+        };
+        gridRow.push(
+          preservedColorMap?.get(rgbKey(sourceColor)) ||
+          findNearestPaletteColorBase(sourceColor.red, sourceColor.green, sourceColor.blue, palette)
+        );
       }
     }
     grid.push(gridRow);
@@ -126,32 +139,11 @@ export function getCornerBackgroundCandidates(imageData, alphaThreshold = IMAGE_
 }
 
 export function findNearestPaletteColor(red, green, blue, palette = PIXEL_ART_COLORS) {
-  let closestColor = palette[0];
-  let closestDistance = Number.POSITIVE_INFINITY;
-
-  palette.forEach((color) => {
-    const rgb = hexToRgb(color.hex);
-    const distance =
-      (red - rgb.red) ** 2 +
-      (green - rgb.green) ** 2 +
-      (blue - rgb.blue) ** 2;
-
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      closestColor = color;
-    }
-  });
-
-  return { ...closestColor };
+  return findNearestPaletteColorBase(red, green, blue, palette);
 }
 
 export function hexToRgb(hex) {
-  const normalized = hex.replace("#", "").slice(0, 6);
-  return {
-    red: Number.parseInt(normalized.slice(0, 2), 16),
-    green: Number.parseInt(normalized.slice(2, 4), 16),
-    blue: Number.parseInt(normalized.slice(4, 6), 16),
-  };
+  return hexToRgbBase(hex);
 }
 
 function isTransparentPixel(data, index, alphaThreshold) {
@@ -179,4 +171,24 @@ function pixelMatchesAnyCandidate(data, index, candidates, tolerance) {
 
     return distance <= maxDistance;
   });
+}
+
+function getVisibleImageColors(imageData, alphaThreshold, backgroundMask) {
+  const { width, height, data } = imageData;
+  const colors = [];
+
+  for (let row = 0; row < height; row++) {
+    for (let col = 0; col < width; col++) {
+      const index = row * width + col;
+      const offset = index * 4;
+      if (data[offset + 3] < alphaThreshold || backgroundMask?.[index]) continue;
+      colors.push({
+        red: data[offset],
+        green: data[offset + 1],
+        blue: data[offset + 2],
+      });
+    }
+  }
+
+  return colors;
 }
