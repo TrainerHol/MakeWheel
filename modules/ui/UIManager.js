@@ -4,6 +4,7 @@ import { CoordinatesDisplay } from './CoordinatesDisplay.js';
 import { CameraControls } from './CameraControls.js';
 import { PixelArtEditor } from './PixelArtEditor.js';
 import { VoxelArtEditor } from './VoxelArtEditor.js';
+import { GradientDyeEditor } from './GradientDyeEditor.js';
 
 /**
  * Main UI coordinator that manages all UI components
@@ -23,6 +24,7 @@ export class UIManager {
     this.cameraControls = new CameraControls(sceneManager);
     this.pixelArtEditor = new PixelArtEditor();
     this.voxelArtEditor = new VoxelArtEditor();
+    this.gradientDyeEditor = new GradientDyeEditor(sceneManager, this.cameraControls);
   }
 
   /**
@@ -33,6 +35,7 @@ export class UIManager {
     this.cameraControls.init();
     this.pixelArtEditor.init();
     this.voxelArtEditor.init();
+    this.gradientDyeEditor.init();
     
     // Connect camera controls to scene manager
     this.sceneManager.setCameraControls(this.cameraControls);
@@ -155,6 +158,8 @@ export class UIManager {
           return;
         case "voxelArt":
           return;
+        case "gradientDye":
+          return;
         default:
           console.warn(`Unknown shape type: ${this.shapeType}`);
           return;
@@ -191,37 +196,41 @@ export class UIManager {
     this.coordinatesDisplay.clear();
     const isPixelArt = this.shapeType === "pixelArt";
     const isVoxelArt = this.shapeType === "voxelArt";
+    const isGradientDye = this.shapeType === "gradientDye";
     const isArtTool = isPixelArt || isVoxelArt;
+    const isSpecialTool = isArtTool || isGradientDye;
 
     this.pixelArtEditor.setActive(isPixelArt);
     this.voxelArtEditor.setActive(isVoxelArt);
+    this.gradientDyeEditor.setActive(isGradientDye);
     document.body.classList.toggle("pixel-art-mode", isPixelArt);
     document.body.classList.toggle("voxel-art-mode", isVoxelArt);
+    document.body.classList.toggle("gradient-dye-mode", isGradientDye);
     
     // Hide/show generate button based on shape type
     const generateBtn = document.getElementById("generateBtn");
     if (generateBtn) {
-      generateBtn.style.display = this.shapeType === "room" || isArtTool ? "none" : "block";
+      generateBtn.style.display = this.shapeType === "room" || isSpecialTool ? "none" : "block";
     }
 
     const resetCameraBtn = document.getElementById("resetCamera");
     if (resetCameraBtn) {
-      resetCameraBtn.style.display = isArtTool ? "none" : "inline-block";
+      resetCameraBtn.style.display = isSpecialTool ? "none" : "inline-block";
     }
 
     const outputOptions = document.getElementById("outputOptions");
     if (outputOptions) {
-      outputOptions.style.display = isArtTool ? "none" : "block";
+      outputOptions.style.display = isSpecialTool ? "none" : "block";
     }
 
     const fileProcessingSection = document.getElementById("fileProcessingSection");
     if (fileProcessingSection) {
-      fileProcessingSection.style.display = isArtTool ? "none" : "block";
+      fileProcessingSection.style.display = isSpecialTool ? "none" : "block";
     }
 
     const coordinates = document.getElementById("coordinates");
     if (coordinates) {
-      coordinates.style.display = isArtTool ? "none" : "block";
+      coordinates.style.display = isSpecialTool ? "none" : "block";
     }
 
     if (this.sceneManager.renderer && this.sceneManager.renderer.domElement) {
@@ -233,6 +242,11 @@ export class UIManager {
    * Reset camera to focus on the current shape
    */
   resetCameraToShape() {
+    if (this.shapeType === "gradientDye") {
+      this.gradientDyeEditor.fitCameraToPreview();
+      return;
+    }
+
     this.cameraControls.resetCameraToShape(
       this.shapeType,
       this.wheel,

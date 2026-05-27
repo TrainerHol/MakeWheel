@@ -19,6 +19,7 @@
           <option value="grid">Grid</option>
           <option value="pixelArt">Pixel Art</option>
           <option value="voxelArt">Voxel Art</option>
+          <option value="gradientDye">Gradient Dye</option>
           <option value="maze">Maze</option>
           <option value="maze3d">3D Maze</option>
           <option value="cylinderSpiral">Cylinder Spiral</option>
@@ -214,15 +215,34 @@
               Preserve shading
             </label>
           </div>
+          <div class="pixel-art-gradient-controls">
+            <label for="pixelArtGradientStart">Gradient Start:</label>
+            <span id="pixelArtGradientStartPreview" class="gradient-color-preview" aria-hidden="true"></span>
+            <select id="pixelArtGradientStart"></select>
+            <label for="pixelArtGradientEnd">End:</label>
+            <span id="pixelArtGradientEndPreview" class="gradient-color-preview" aria-hidden="true"></span>
+            <select id="pixelArtGradientEnd"></select>
+            <label for="pixelArtGradientAngle">Angle:</label>
+            <input type="number" id="pixelArtGradientAngle" value="0" step="1" />
+            <button id="pixelArtGradientApplyBtn" class="pixel-icon-button" type="button" aria-label="Apply gradient to filled pixels" title="Apply gradient to filled pixels">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20 20 4" />
+                <path d="M4 20h6" />
+                <path d="M4 20v-6" />
+                <path d="M14 4h6v6" />
+              </svg>
+              <span class="sr-only">Apply Gradient</span>
+            </button>
+          </div>
           <div class="pixel-art-toolbar" role="toolbar" aria-label="Pixel art tools">
-            <button class="pixel-icon-button" type="button" data-pixel-tool="pencil" aria-label="Pencil tool" title="Pencil tool">
+            <button class="pixel-icon-button" type="button" data-pixel-tool="pencil" aria-label="Pencil tool" title="Pencil tool (P)">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="m16 3 5 5L8 21H3v-5L16 3z" />
                 <path d="m14 5 5 5" />
               </svg>
               <span class="sr-only">Pencil</span>
             </button>
-            <button class="pixel-icon-button" type="button" data-pixel-tool="eraser" aria-label="Eraser tool" title="Eraser tool">
+            <button class="pixel-icon-button" type="button" data-pixel-tool="eraser" aria-label="Eraser tool" title="Eraser tool (E)">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="m7 21-5-5L14 4a3 3 0 0 1 4 0l2 2a3 3 0 0 1 0 4L9 21H7z" />
                 <path d="m12 8 6 6" />
@@ -230,13 +250,23 @@
               </svg>
               <span class="sr-only">Eraser</span>
             </button>
-            <button class="pixel-icon-button" type="button" data-pixel-tool="fill" aria-label="Fill tool" title="Fill tool">
+            <button class="pixel-icon-button" type="button" data-pixel-tool="fill" aria-label="Fill tool" title="Fill tool (G)">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="m3 11 8-8 9 9-8 8-9-9z" />
                 <path d="m3 11h17" />
                 <path d="M19 16c1.5 1.5 2 2.5 2 3.5a2 2 0 0 1-4 0c0-1 .5-2 2-3.5z" />
               </svg>
               <span class="sr-only">Fill</span>
+            </button>
+            <button id="pixelArtClearBtn" class="pixel-icon-button hold-confirm-button" type="button" aria-label="Hold for 3 seconds to clear pixel art canvas" title="Hold 3s to clear canvas">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6h18" />
+                <path d="M8 6V4h8v2" />
+                <path d="M6 6l1 15h10l1-15" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+              <span class="sr-only">Clear Canvas</span>
             </button>
             <button id="pixelArtUndoBtn" class="pixel-icon-button" type="button" aria-label="Undo" title="Undo">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -384,6 +414,16 @@
               </svg>
               <span class="sr-only">Redo</span>
             </button>
+            <button id="voxelArtClearBtn" class="pixel-icon-button hold-confirm-button" type="button" aria-label="Hold for 3 seconds to clear voxel model" title="Hold 3s to clear model">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6h18" />
+                <path d="M8 6V4h8v2" />
+                <path d="M6 6l1 15h10l1-15" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+              <span class="sr-only">Clear Model</span>
+            </button>
           </div>
           <div class="voxel-art-options">
             <label>
@@ -399,6 +439,27 @@
               Rotate closest to edge
             </label>
           </div>
+          <div class="voxel-art-gradient-controls">
+            <label for="voxelArtGradientStart">Gradient Start:</label>
+            <span id="voxelArtGradientStartPreview" class="gradient-color-preview" aria-hidden="true"></span>
+            <select id="voxelArtGradientStart"></select>
+            <label for="voxelArtGradientEnd">End:</label>
+            <span id="voxelArtGradientEndPreview" class="gradient-color-preview" aria-hidden="true"></span>
+            <select id="voxelArtGradientEnd"></select>
+            <label for="voxelArtGradientYaw">Yaw:</label>
+            <input type="number" id="voxelArtGradientYaw" value="0" step="1" />
+            <label for="voxelArtGradientPitch">Pitch:</label>
+            <input type="number" id="voxelArtGradientPitch" value="0" step="1" />
+            <button id="voxelArtGradientApplyBtn" class="pixel-icon-button" type="button" aria-label="Apply gradient to existing voxels" title="Apply gradient to existing voxels">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20 20 4" />
+                <path d="M4 20h6" />
+                <path d="M4 20v-6" />
+                <path d="M14 4h6v6" />
+              </svg>
+              <span class="sr-only">Apply Gradient</span>
+            </button>
+          </div>
           <div id="voxelArtPalette" class="pixel-art-palette voxel-art-palette"></div>
           <div class="voxel-art-current-color">
             <span id="voxelArtColorPreview"></span>
@@ -412,6 +473,55 @@
           <div id="voxelArtStatus" class="pixel-art-status"></div>
           <div id="voxelArtImportStatus" class="pixel-art-import-status" role="status" aria-live="polite"></div>
         </div>
+      </div>
+
+      <div id="gradientDyeInputs" class="gradient-dye-tool" style="display: none">
+        <h3>Gradient Dye</h3>
+        <div class="gradient-dye-control-row">
+          <label for="gradientDyeFileInput">JSON:</label>
+          <input type="file" id="gradientDyeFileInput" accept=".json" />
+          <button id="gradientDyeImportBtn" class="pixel-icon-button" type="button" aria-label="Import MakePlace JSON" title="Import MakePlace JSON">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12" />
+              <path d="m7 8 5-5 5 5" />
+              <path d="M5 21h14" />
+              <path d="M5 15v6" />
+              <path d="M19 15v6" />
+            </svg>
+            <span class="sr-only">Import JSON</span>
+          </button>
+          <button id="gradientDyeResetCameraBtn" class="pixel-icon-button" type="button" aria-label="Reset gradient preview camera" title="Reset camera">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 12a9 9 0 1 1-3-6.7" />
+              <path d="M21 3v6h-6" />
+            </svg>
+            <span class="sr-only">Reset Camera</span>
+          </button>
+          <button id="gradientDyeDownloadBtn" class="pixel-icon-button" type="button" aria-label="Download gradient dyed JSON" title="Download gradient dyed JSON" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M5 21h14" />
+            </svg>
+            <span class="sr-only">Download JSON</span>
+          </button>
+        </div>
+        <div class="gradient-dye-gradient-controls">
+          <label for="gradientDyeStart">Gradient Start:</label>
+          <span id="gradientDyeStartPreview" class="gradient-color-preview" aria-hidden="true"></span>
+          <select id="gradientDyeStart"></select>
+          <label for="gradientDyeEnd">End:</label>
+          <span id="gradientDyeEndPreview" class="gradient-color-preview" aria-hidden="true"></span>
+          <select id="gradientDyeEnd"></select>
+        </div>
+        <div class="gradient-dye-gradient-controls">
+          <label for="gradientDyeYaw">Yaw:</label>
+          <input type="number" id="gradientDyeYaw" value="0" step="1" />
+          <label for="gradientDyePitch">Pitch:</label>
+          <input type="number" id="gradientDyePitch" value="0" step="1" />
+        </div>
+        <div id="gradientDyeStatus" class="pixel-art-status"></div>
+        <div id="gradientDyeImportStatus" class="pixel-art-import-status" role="status" aria-live="polite"></div>
       </div>
 
       <div id="mazeInputs" style="display: none">

@@ -394,6 +394,7 @@ export class ShapeControllers {
       gridInputs: "grid",
       pixelArtInputs: "pixelArt",
       voxelArtInputs: "voxelArt",
+      gradientDyeInputs: "gradientDye",
       mazeInputs: "maze",
       maze3dInputs: "maze3d",
       cylinderSpiralInputs: "cylinderSpiral",

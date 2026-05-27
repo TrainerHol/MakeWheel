@@ -14,6 +14,11 @@ import {
   getImageImportSize,
   imageDataToPixelGrid,
 } from "../utils/pixelArtImage.js";
+import { attachHoldToConfirm } from "../utils/holdToConfirm.js";
+import {
+  applyGradientToPixelGrid,
+  parseGradientAngle,
+} from "../utils/gradientFill.js";
 
 const DEFAULT_WIDTH = 8;
 const DEFAULT_HEIGHT = 8;
@@ -35,6 +40,7 @@ export class PixelArtEditor {
     this.strokeSnapshot = null;
     this.strokeChanged = false;
     this.elements = {};
+    this.cancelClearHold = null;
   }
 
   init() {
@@ -42,6 +48,7 @@ export class PixelArtEditor {
     if (!this.elements.root) return;
 
     this.populateFurnitureOptions();
+    this.populateGradientOptions();
     this.renderPalette();
     this.renderGrid();
     this.bindEvents();
@@ -53,6 +60,10 @@ export class PixelArtEditor {
   setActive(isActive) {
     this.active = isActive;
     if (!this.elements.root) return;
+
+    if (!isActive) {
+      this.cancelClearHold?.();
+    }
 
     this.elements.root.style.display = isActive ? "grid" : "none";
     if (isActive) {
@@ -83,6 +94,7 @@ export class PixelArtEditor {
       colorLabel: document.getElementById("pixelArtColorLabel"),
       undoBtn: document.getElementById("pixelArtUndoBtn"),
       redoBtn: document.getElementById("pixelArtRedoBtn"),
+      clearBtn: document.getElementById("pixelArtClearBtn"),
       downloadBtn: document.getElementById("pixelArtDownloadBtn"),
       imageInput: document.getElementById("pixelArtImageInput"),
       importBtn: document.getElementById("pixelArtImportBtn"),
@@ -90,6 +102,12 @@ export class PixelArtEditor {
       importAsCanvasSize: document.getElementById("pixelArtImportAsCanvasSize"),
       removeBackground: document.getElementById("pixelArtRemoveBackground"),
       preserveShading: document.getElementById("pixelArtPreserveShading"),
+      gradientStart: document.getElementById("pixelArtGradientStart"),
+      gradientStartPreview: document.getElementById("pixelArtGradientStartPreview"),
+      gradientEnd: document.getElementById("pixelArtGradientEnd"),
+      gradientEndPreview: document.getElementById("pixelArtGradientEndPreview"),
+      gradientAngle: document.getElementById("pixelArtGradientAngle"),
+      gradientApplyBtn: document.getElementById("pixelArtGradientApplyBtn"),
       toolButtons: Array.from(document.querySelectorAll("[data-pixel-tool]")),
     };
   }
@@ -112,6 +130,30 @@ export class PixelArtEditor {
     this.updateCustomFurnitureVisibility();
   }
 
+  populateGradientOptions() {
+    this.populateColorSelect(this.elements.gradientStart, PIXEL_ART_COLORS[0]?.id);
+    this.populateColorSelect(
+      this.elements.gradientEnd,
+      PIXEL_ART_COLORS.find((color) => color.id === "jet-black")?.id || PIXEL_ART_COLORS.at(-1)?.id
+    );
+    this.updateGradientColorPreviews();
+  }
+
+  populateColorSelect(select, selectedColorId) {
+    if (!select) return;
+
+    select.innerHTML = "";
+    PIXEL_ART_COLORS.forEach((color) => {
+      const option = document.createElement("option");
+      option.value = color.id;
+      option.textContent = color.name;
+      select.appendChild(option);
+    });
+    if (selectedColorId) {
+      select.value = selectedColorId;
+    }
+  }
+
   bindEvents() {
     this.elements.toolButtons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -131,6 +173,10 @@ export class PixelArtEditor {
       this.redo();
     });
 
+    this.cancelClearHold = attachHoldToConfirm(this.elements.clearBtn, () => {
+      this.clearCanvas();
+    });
+
     this.elements.downloadBtn?.addEventListener("click", () => {
       this.downloadDesign();
     });
@@ -139,8 +185,24 @@ export class PixelArtEditor {
       this.importImageFromFile();
     });
 
+    this.elements.gradientApplyBtn?.addEventListener("click", () => {
+      this.applyGradientFill();
+    });
+
+    this.elements.gradientStart?.addEventListener("change", () => {
+      this.updateGradientColorPreviews();
+    });
+
+    this.elements.gradientEnd?.addEventListener("change", () => {
+      this.updateGradientColorPreviews();
+    });
+
     this.elements.imageInput?.addEventListener("change", () => {
-      this.setImportStatus("");
+      if (this.elements.imageInput.files?.[0]) {
+        this.importImageFromFile();
+      } else {
+        this.setImportStatus("");
+      }
     });
 
     this.elements.furnitureSelect?.addEventListener("change", () => {
@@ -169,6 +231,10 @@ export class PixelArtEditor {
 
     window.addEventListener("pointerup", () => {
       this.finishStroke();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      this.handleKeyDown(event);
     });
   }
 
@@ -251,6 +317,19 @@ export class PixelArtEditor {
     if (this.elements.colorLabel) {
       this.elements.colorLabel.textContent = this.selectedColor.name;
     }
+  }
+
+  updateGradientColorPreviews() {
+    this.updateGradientColorPreview(this.elements.gradientStartPreview, this.elements.gradientStart?.value);
+    this.updateGradientColorPreview(this.elements.gradientEndPreview, this.elements.gradientEnd?.value);
+  }
+
+  updateGradientColorPreview(preview, colorId) {
+    if (!preview) return;
+
+    const color = this.getPaletteColorById(colorId);
+    preview.style.backgroundColor = this.toCssColor(color.hex);
+    preview.title = color.name;
   }
 
   updatePaletteSelection() {
@@ -393,6 +472,46 @@ export class PixelArtEditor {
     this.syncSizeInputs();
     this.renderGrid();
     this.updateStatus();
+  }
+
+  clearCanvas() {
+    const filledPixels = countFilledPixels(this.grid);
+    if (filledPixels < 1) {
+      this.setImportStatus("Canvas is already clear.");
+      return false;
+    }
+
+    this.pushUndo(clonePixelGrid(this.grid));
+    this.redoStack = [];
+    this.grid = createEmptyPixelGrid(this.width, this.height);
+    this.renderGrid();
+    this.updateStatus();
+    this.setImportStatus(`Cleared ${filledPixels} pixel${filledPixels === 1 ? "" : "s"}.`);
+    return true;
+  }
+
+  applyGradientFill() {
+    const filledPixels = countFilledPixels(this.grid);
+    if (filledPixels < 1) {
+      this.setImportStatus("No filled pixels to gradient.");
+      return false;
+    }
+
+    const result = applyGradientToPixelGrid(this.grid, {
+      startColor: this.getPaletteColorById(this.elements.gradientStart?.value),
+      endColor: this.getPaletteColorById(this.elements.gradientEnd?.value),
+      angleDegrees: parseGradientAngle(this.elements.gradientAngle?.value, 0),
+      palette: PIXEL_ART_COLORS,
+    });
+    if (!result.changed) return false;
+
+    this.pushUndo(clonePixelGrid(this.grid));
+    this.redoStack = [];
+    this.grid = result.grid;
+    this.renderGrid();
+    this.updateStatus();
+    this.setImportStatus(`Applied gradient to ${result.filledCount} pixel${result.filledCount === 1 ? "" : "s"}.`);
+    return true;
   }
 
   async importImageFromFile() {
@@ -560,6 +679,10 @@ export class PixelArtEditor {
     return Number.isFinite(value) && value > 0;
   }
 
+  getPaletteColorById(colorId) {
+    return PIXEL_ART_COLORS.find((color) => color.id === colorId) || PIXEL_ART_COLORS[0];
+  }
+
   pushUndo(snapshot) {
     this.undoStack.push(snapshot);
     if (this.undoStack.length > MAX_HISTORY) {
@@ -611,6 +734,44 @@ export class PixelArtEditor {
 
     this.elements.importStatus.textContent = message;
     this.elements.importStatus.classList.toggle("error", isError);
+  }
+
+  handleKeyDown(event) {
+    if (!this.active || this.isTypingTarget(event.target)) return;
+
+    const key = event.key.toLowerCase();
+    if ((event.ctrlKey || event.metaKey) && key === "z" && event.shiftKey) {
+      event.preventDefault();
+      this.redo();
+      return;
+    }
+    if ((event.ctrlKey || event.metaKey) && key === "z") {
+      event.preventDefault();
+      this.undo();
+      return;
+    }
+    if ((event.ctrlKey || event.metaKey) && key === "y") {
+      event.preventDefault();
+      this.redo();
+      return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+    if (key === "p") {
+      event.preventDefault();
+      this.setTool("pencil");
+    } else if (key === "e") {
+      event.preventDefault();
+      this.setTool("eraser");
+    } else if (key === "g") {
+      event.preventDefault();
+      this.setTool("fill");
+    }
+  }
+
+  isTypingTarget(target) {
+    if (!target) return false;
+    return ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName);
   }
 
   paintCellElement(cell, pixel) {
