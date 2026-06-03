@@ -218,7 +218,7 @@ export class PixelArtEditor {
       if (!cell) return;
 
       event.preventDefault();
-      this.handlePointerDown(cell);
+      this.handlePointerDown(cell, event);
     });
 
     this.elements.grid?.addEventListener("pointerover", (event) => {
@@ -235,6 +235,10 @@ export class PixelArtEditor {
 
     document.addEventListener("keydown", (event) => {
       this.handleKeyDown(event);
+    });
+
+    document.addEventListener("paste", (event) => {
+      this.handlePaste(event);
     });
   }
 
@@ -291,7 +295,7 @@ export class PixelArtEditor {
   }
 
   setTool(tool) {
-    if (!["pencil", "eraser", "fill"].includes(tool)) return;
+    if (!["pencil", "eraser", "fill", "pick"].includes(tool)) return;
 
     this.currentTool = tool;
     this.elements.toolButtons.forEach((button) => {
@@ -305,7 +309,7 @@ export class PixelArtEditor {
     this.selectedColor = color;
     this.updateColorPreview();
     this.updatePaletteSelection();
-    if (this.currentTool === "eraser") {
+    if (this.currentTool === "eraser" || this.currentTool === "pick") {
       this.setTool("pencil");
     }
   }
@@ -340,7 +344,12 @@ export class PixelArtEditor {
     });
   }
 
-  handlePointerDown(cell) {
+  handlePointerDown(cell, event = null) {
+    if (event?.altKey || this.currentTool === "pick") {
+      this.pickCellColor(cell);
+      return;
+    }
+
     if (this.currentTool === "fill") {
       this.applyFill(cell);
       return;
@@ -363,6 +372,20 @@ export class PixelArtEditor {
     this.paintCellElement(cell, this.grid[row][col]);
     this.strokeChanged = true;
     this.updateStatus();
+  }
+
+  pickCellColor(cell) {
+    const row = Number(cell.dataset.row);
+    const col = Number(cell.dataset.col);
+    const color = this.grid[row]?.[col];
+    if (!color) {
+      this.setImportStatus("No color in this pixel.");
+      return false;
+    }
+
+    this.selectColor(color);
+    this.setImportStatus(`Picked ${color.name}.`);
+    return true;
   }
 
   finishStroke() {
@@ -521,6 +544,14 @@ export class PixelArtEditor {
       return false;
     }
 
+    const imported = await this.importImageFile(file, { actionLabel: "Imported" });
+    if (imported && this.elements.imageInput) {
+      this.elements.imageInput.value = "";
+    }
+    return imported;
+  }
+
+  async importImageFile(file, { actionLabel = "Imported" } = {}) {
     if (!file.type.startsWith("image/")) {
       this.setImportStatus("The selected file is not an image.", true);
       return false;
@@ -567,13 +598,42 @@ export class PixelArtEditor {
       this.updateStatus();
       const backgroundMessage = removeBackground ? " Background removed from matching edge colors." : "";
       const shadingMessage = preserveShading ? " Shading preserved where close palette alternatives were available." : "";
-      this.setImportStatus(`Imported ${sourceWidth} x ${sourceHeight} as ${this.width} x ${this.height}.${backgroundMessage}${shadingMessage}`);
-      this.elements.imageInput.value = "";
+      this.setImportStatus(`${actionLabel} ${sourceWidth} x ${sourceHeight} as ${this.width} x ${this.height}.${backgroundMessage}${shadingMessage}`);
       return true;
     } catch (error) {
       this.setImportStatus(`Import failed: ${error.message}`, true);
       return false;
     }
+  }
+
+  handlePaste(event) {
+    if (!this.active) return;
+
+    const file = this.getClipboardImageFile(event.clipboardData);
+    if (!file) return;
+
+    event.preventDefault();
+    this.importImageFile(file, { actionLabel: "Pasted" });
+  }
+
+  getClipboardImageFile(clipboardData) {
+    if (!clipboardData) return null;
+
+    for (const file of Array.from(clipboardData.files || [])) {
+      if (file.type.startsWith("image/")) {
+        return file;
+      }
+    }
+
+    for (const item of Array.from(clipboardData.items || [])) {
+      if (!item.type.startsWith("image/")) continue;
+      const file = item.getAsFile();
+      if (!file) continue;
+      if (file.name) return file;
+      return new File([file], "pasted-image.png", { type: file.type });
+    }
+
+    return null;
   }
 
   loadImage(file) {
@@ -757,10 +817,10 @@ export class PixelArtEditor {
     }
     if (event.ctrlKey || event.metaKey || event.altKey) return;
 
-    if (key === "p") {
+    if (key === "t") {
       event.preventDefault();
       this.setTool("pencil");
-    } else if (key === "e") {
+    } else if (key === "r") {
       event.preventDefault();
       this.setTool("eraser");
     } else if (key === "g") {

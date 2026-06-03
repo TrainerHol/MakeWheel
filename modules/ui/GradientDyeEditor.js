@@ -303,7 +303,7 @@ export class GradientDyeEditor {
     const skippedCount = this.entries.length - targetCount;
     this.elements.status.textContent =
       `${this.formatKind(this.designKind)}: ${this.entries.length} located item${this.entries.length === 1 ? "" : "s"}, ` +
-      `${targetCount} dyed, ${skippedCount} skipped`;
+      `${targetCount} with default dye, ${skippedCount} skipped`;
     if (this.elements.downloadBtn) {
       this.elements.downloadBtn.disabled = false;
     }
@@ -312,7 +312,7 @@ export class GradientDyeEditor {
   getImportSummary(prefix) {
     const targetCount = this.entries.filter((entry) => entry.isDyeTarget).length;
     const skippedCount = this.entries.length - targetCount;
-    return `${prefix} ${this.formatKind(this.designKind).toLowerCase()}: ${this.entries.length} located item${this.entries.length === 1 ? "" : "s"}, ${targetCount} dyed, ${skippedCount} skipped.`;
+    return `${prefix} ${this.formatKind(this.designKind).toLowerCase()}: ${this.entries.length} located item${this.entries.length === 1 ? "" : "s"}, ${targetCount} with default dye, ${skippedCount} skipped.`;
   }
 
   setImportStatus(message, isError = false) {

@@ -74,7 +74,8 @@ h2 {
 
 body.pixel-art-mode,
 body.voxel-art-mode,
-body.gradient-dye-mode {
+body.gradient-dye-mode,
+body.custom-design-converter-mode {
   background: #000000;
 }
 
@@ -127,7 +128,12 @@ body.voxel-art-mode #info div {
   max-width: 380px;
 }
 
-#gradientDyeInputs h3 {
+#customDesignConverterInputs {
+  max-width: 380px;
+}
+
+#gradientDyeInputs h3,
+#customDesignConverterInputs h3 {
   margin: 0 0 8px;
 }
 
@@ -136,7 +142,9 @@ body.voxel-art-mode #info div {
 }
 
 #gradientDyeInputs .pixel-art-status,
-#gradientDyeInputs .pixel-art-import-status {
+#gradientDyeInputs .pixel-art-import-status,
+#customDesignConverterInputs .pixel-art-status,
+#customDesignConverterInputs .pixel-art-import-status {
   margin-top: 8px;
 }
 
@@ -193,7 +201,8 @@ body.voxel-art-mode #info div {
 .voxel-art-options,
 .voxel-art-footer,
 .gradient-dye-control-row,
-.gradient-dye-gradient-controls {
+.gradient-dye-gradient-controls,
+.custom-design-converter-control-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -228,7 +237,8 @@ body.voxel-art-mode #info div {
 
 .pixel-art-control-row input[type="file"],
 .voxel-art-control-row input[type="file"],
-.gradient-dye-control-row input[type="file"] {
+.gradient-dye-control-row input[type="file"],
+.custom-design-converter-control-row input[type="file"] {
   max-width: 205px;
 }
 
@@ -302,7 +312,8 @@ body.voxel-art-mode #info div {
 #pixelArtRedoBtn:disabled,
 #voxelArtUndoBtn:disabled,
 #voxelArtRedoBtn:disabled,
-#gradientDyeDownloadBtn:disabled {
+#gradientDyeDownloadBtn:disabled,
+#customDesignConverterDownloadBtn:disabled {
   cursor: default;
   opacity: 0.45;
 }

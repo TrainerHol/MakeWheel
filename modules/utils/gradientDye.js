@@ -40,7 +40,7 @@ export function collectLocatedFurniture(json) {
 }
 
 export function isGradientDyeTarget(item) {
-  return isLocatedFurnitureItem(item);
+  return isLocatedFurnitureItem(item) && hasDefaultDyeColor(item);
 }
 
 export function applyGradientToDesign(json, {
@@ -155,6 +155,11 @@ function isLocatedFurnitureItem(item) {
     location.length >= 3 &&
     location.slice(0, 3).every((value) => Number.isFinite(Number(value)))
   );
+}
+
+function hasDefaultDyeColor(item) {
+  const color = item?.properties?.color;
+  return typeof color === "string" && color.trim().length > 0;
 }
 
 function getByPath(root, path) {

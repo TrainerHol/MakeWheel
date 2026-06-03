@@ -5,6 +5,7 @@ import { CameraControls } from './CameraControls.js';
 import { PixelArtEditor } from './PixelArtEditor.js';
 import { VoxelArtEditor } from './VoxelArtEditor.js';
 import { GradientDyeEditor } from './GradientDyeEditor.js';
+import { CustomDesignConverterEditor } from './CustomDesignConverterEditor.js';
 
 /**
  * Main UI coordinator that manages all UI components
@@ -25,6 +26,7 @@ export class UIManager {
     this.pixelArtEditor = new PixelArtEditor();
     this.voxelArtEditor = new VoxelArtEditor();
     this.gradientDyeEditor = new GradientDyeEditor(sceneManager, this.cameraControls);
+    this.customDesignConverterEditor = new CustomDesignConverterEditor();
   }
 
   /**
@@ -36,6 +38,7 @@ export class UIManager {
     this.pixelArtEditor.init();
     this.voxelArtEditor.init();
     this.gradientDyeEditor.init();
+    this.customDesignConverterEditor.init();
     
     // Connect camera controls to scene manager
     this.sceneManager.setCameraControls(this.cameraControls);
@@ -160,6 +163,8 @@ export class UIManager {
           return;
         case "gradientDye":
           return;
+        case "customDesignConverter":
+          return;
         default:
           console.warn(`Unknown shape type: ${this.shapeType}`);
           return;
@@ -197,15 +202,18 @@ export class UIManager {
     const isPixelArt = this.shapeType === "pixelArt";
     const isVoxelArt = this.shapeType === "voxelArt";
     const isGradientDye = this.shapeType === "gradientDye";
+    const isCustomDesignConverter = this.shapeType === "customDesignConverter";
     const isArtTool = isPixelArt || isVoxelArt;
-    const isSpecialTool = isArtTool || isGradientDye;
+    const isSpecialTool = isArtTool || isGradientDye || isCustomDesignConverter;
 
     this.pixelArtEditor.setActive(isPixelArt);
     this.voxelArtEditor.setActive(isVoxelArt);
     this.gradientDyeEditor.setActive(isGradientDye);
+    this.customDesignConverterEditor.setActive(isCustomDesignConverter);
     document.body.classList.toggle("pixel-art-mode", isPixelArt);
     document.body.classList.toggle("voxel-art-mode", isVoxelArt);
     document.body.classList.toggle("gradient-dye-mode", isGradientDye);
+    document.body.classList.toggle("custom-design-converter-mode", isCustomDesignConverter);
     
     // Hide/show generate button based on shape type
     const generateBtn = document.getElementById("generateBtn");
