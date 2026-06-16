@@ -1,5 +1,6 @@
 import { Spiral } from './Spiral.js';
 import { COLORS, DEFAULTS } from '../utils/constants.js';
+import { applyRandomDisplacementToVectors } from '../utils/randomization.js';
 
 /**
  * Generates conical spiral shapes (spirals that form a cone shape)
@@ -25,7 +26,8 @@ export class ConicalSpiral extends Spiral {
       height = DEFAULTS.CONICAL_SPIRAL.HEIGHT,
       startFromCenter = DEFAULTS.CONICAL_SPIRAL.START_POINT === 'center',
       planeAngle = 0,
-      planeAxis = 'x'
+      planeAxis = 'x',
+      randomDisplacement = null
     } = params;
 
     this.clearPoints();
@@ -69,6 +71,7 @@ export class ConicalSpiral extends Spiral {
 
     // Apply plane rotation
     this.applyPlaneRotation(spiralPoints, centerPoint, planeAngle, planeAxis);
+    applyRandomDisplacementToVectors(spiralPoints, randomDisplacement);
 
     // Create spheres for the rotated points
     spiralPoints.forEach((point) => {

@@ -1,5 +1,6 @@
 import { BaseShape } from '../base/BaseShape.js';
 import { COLORS, DEFAULTS } from '../utils/constants.js';
+import { applyRandomDisplacementToMeshes } from '../utils/randomization.js';
 
 /**
  * Generates wheel/circular patterns with points distributed around a center
@@ -29,7 +30,8 @@ export class Wheel extends BaseShape {
       point2Coords = new THREE.Vector3(DEFAULTS.WHEEL.POINT2.x, DEFAULTS.WHEEL.POINT2.y, DEFAULTS.WHEEL.POINT2.z),
       repetitions = DEFAULTS.WHEEL.REPETITIONS,
       segments = DEFAULTS.WHEEL.SEGMENTS,
-      planeAngle = 0
+      planeAngle = 0,
+      randomDisplacement = null
     } = params;
 
     this.clearPoints();
@@ -88,6 +90,8 @@ export class Wheel extends BaseShape {
         }
       }
     }
+
+    applyRandomDisplacementToMeshes(this.allPoints, randomDisplacement);
   }
 
   /**

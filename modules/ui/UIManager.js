@@ -145,6 +145,9 @@ export class UIManager {
         case "grid":
           success = this.shapeControllers.generateGrid();
           break;
+        case "particleField":
+          success = this.shapeControllers.generateParticleField();
+          break;
         case "maze":
           success = this.shapeControllers.generateMaze();
           break;

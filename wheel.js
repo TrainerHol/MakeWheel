@@ -7,6 +7,7 @@ import { ConicalSpiral } from './modules/shapes/ConicalSpiral.js';
 import { SphericalSpiral } from './modules/shapes/SphericalSpiral.js';
 import { CylinderSpiral } from './modules/shapes/CylinderSpiral.js';
 import { Grid } from './modules/shapes/Grid.js';
+import { ParticleField } from './modules/shapes/ParticleField.js';
 import { Room } from './modules/shapes/Room.js';
 
 /**
@@ -25,6 +26,7 @@ export class Wheel {
     this.sphericalSpiralShape = new SphericalSpiral(scene);
     this.cylinderSpiralShape = new CylinderSpiral(scene);
     this.gridShape = new Grid(scene);
+    this.particleFieldShape = new ParticleField(scene);
     this.roomShape = new Room(scene, camera);
     
     // Current active shape
@@ -42,7 +44,7 @@ export class Wheel {
   }
 
   // Legacy method mappings
-  generatePoints(point1Coords, point2Coords, repetitions, segments, planeAngle) {
+  generatePoints(point1Coords, point2Coords, repetitions, segments, planeAngle, randomDisplacement = null) {
     this.currentShape = this.wheelShape;
     this.shapeType = "wheel";
     this.wheelShape.generate({
@@ -50,12 +52,13 @@ export class Wheel {
       point2Coords,
       repetitions,
       segments,
-      planeAngle
+      planeAngle,
+      randomDisplacement
     });
     this.syncProperties();
   }
 
-  generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle, planeAxis) {
+  generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle, planeAxis, randomDisplacement = null) {
     this.currentShape = this.spiralShape;
     this.shapeType = "spiral";
     this.spiralShape.generate({
@@ -65,12 +68,13 @@ export class Wheel {
       segments,
       turns,
       planeAngle,
-      planeAxis
+      planeAxis,
+      randomDisplacement
     });
     this.syncProperties();
   }
 
-  generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter, planeAngle, planeAxis) {
+  generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter, planeAngle, planeAxis, randomDisplacement = null) {
     this.currentShape = this.conicalSpiralShape;
     this.shapeType = "conicalSpiral";
     this.conicalSpiralShape.generate({
@@ -83,12 +87,13 @@ export class Wheel {
       height,
       startFromCenter,
       planeAngle,
-      planeAxis
+      planeAxis,
+      randomDisplacement
     });
     this.syncProperties();
   }
 
-  generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle, planeAngle, planeAxis) {
+  generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle, planeAngle, planeAxis, randomDisplacement = null) {
     this.currentShape = this.sphericalSpiralShape;
     this.shapeType = "sphericalSpiral";
     this.sphericalSpiralShape.generate({
@@ -100,12 +105,13 @@ export class Wheel {
       startAngle,
       endAngle,
       planeAngle,
-      planeAxis
+      planeAxis,
+      randomDisplacement
     });
     this.syncProperties();
   }
 
-  generateGrid(centerPoint, rows, columns, spacing, stepAmount, floors) {
+  generateGrid(centerPoint, rows, columns, spacing, stepAmount, floors, randomDisplacement = null) {
     this.currentShape = this.gridShape;
     this.shapeType = "grid";
     this.gridShape.generate({
@@ -114,12 +120,27 @@ export class Wheel {
       columns,
       spacing,
       stepAmount,
-      floors
+      floors,
+      randomDisplacement
     });
     this.syncProperties();
   }
 
-  generateCylinderSpiral(center, radius, height, segments, turns, direction, planeAngle, planeAxis) {
+  generateParticleField(centerPoint, width, depth, height, count, seed) {
+    this.currentShape = this.particleFieldShape;
+    this.shapeType = "particleField";
+    this.particleFieldShape.generate({
+      centerPoint,
+      width,
+      depth,
+      height,
+      count,
+      seed
+    });
+    this.syncProperties();
+  }
+
+  generateCylinderSpiral(center, radius, height, segments, turns, direction, planeAngle, planeAxis, randomDisplacement = null) {
     this.currentShape = this.cylinderSpiralShape;
     this.shapeType = "cylinderSpiral";
     this.cylinderSpiralShape.generate({
@@ -130,7 +151,8 @@ export class Wheel {
       turns,
       direction,
       planeAngle,
-      planeAxis
+      planeAxis,
+      randomDisplacement
     });
     this.syncProperties();
   }
@@ -166,6 +188,7 @@ export class Wheel {
     this.sphericalSpiralShape.clearPoints();
     this.cylinderSpiralShape.clearPoints();
     this.gridShape.clearPoints();
+    this.particleFieldShape.clearPoints();
     this.roomShape.completeReset();
     
     // Reset legacy properties

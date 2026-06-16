@@ -30,6 +30,7 @@ export class ShapeControllers {
       const repetitions = parseInt(document.getElementById("repetitions").value);
       const segments = parseInt(document.getElementById("segments").value);
       const planeAngle = parseFloat(document.getElementById("planeAngle").value);
+      const randomDisplacement = this.getRandomDisplacementOptions();
 
       // Validate inputs
       validatePoint(point1Coords, "Point 1");
@@ -39,7 +40,7 @@ export class ShapeControllers {
       validateRange(segments, 0, 50, "Segments");
       validateRange(planeAngle, -360, 360, "Plane Angle");
 
-      this.wheel.generatePoints(point1Coords, point2Coords, repetitions, segments, planeAngle);
+      this.wheel.generatePoints(point1Coords, point2Coords, repetitions, segments, planeAngle, randomDisplacement);
       this.updateCount('Wheel', this.wheel.allPoints.length);
       return true;
     } catch (error) {
@@ -68,6 +69,7 @@ export class ShapeControllers {
       const turns = parseFloat(document.getElementById("spiralTurns").value);
       const planeAngle = parseFloat(document.getElementById("spiralPlaneAngle").value);
       const planeAxis = document.getElementById("spiralPlaneAxis").value;
+      const randomDisplacement = this.getRandomDisplacementOptions();
 
       // Validate inputs
       validatePoint(centerPoint, "Center Point");
@@ -77,7 +79,7 @@ export class ShapeControllers {
       validateRange(turns, 0.1, 20, "Turns");
       validateRange(planeAngle, -360, 360, "Plane Angle");
 
-      this.wheel.generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle, planeAxis);
+      this.wheel.generateSpiral(centerPoint, startPoint, direction, segments, turns, planeAngle, planeAxis, randomDisplacement);
       this.updateCount('Spiral', this.wheel.allPoints.length);
       return true;
     } catch (error) {
@@ -109,6 +111,7 @@ export class ShapeControllers {
       const startFromCenter = document.getElementById("conicalSpiralStartPoint").value === "center";
       const planeAngle = parseFloat(document.getElementById("conicalSpiralPlaneAngle").value);
       const planeAxis = document.getElementById("conicalSpiralPlaneAxis").value;
+      const randomDisplacement = this.getRandomDisplacementOptions();
 
       // Validate inputs
       validatePoint(centerPoint, "Center Point");
@@ -119,7 +122,7 @@ export class ShapeControllers {
       validateRange(height, 1, 200, "Height");
       validateRange(planeAngle, -360, 360, "Plane Angle");
 
-      this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter, planeAngle, planeAxis);
+      this.wheel.generateConicalSpiral(centerPoint, startPoint, direction, segments, turns, isUpright, height, startFromCenter, planeAngle, planeAxis, randomDisplacement);
       this.updateCount('ConicalSpiral', this.wheel.allPoints.length);
       return true;
     } catch (error) {
@@ -146,6 +149,7 @@ export class ShapeControllers {
       const endAngle = parseFloat(document.getElementById("sphericalSpiralEndAngle").value);
       const planeAngle = parseFloat(document.getElementById("sphericalSpiralPlaneAngle").value);
       const planeAxis = document.getElementById("sphericalSpiralPlaneAxis").value;
+      const randomDisplacement = this.getRandomDisplacementOptions();
 
       // Validate inputs
       validatePoint(centerPoint, "Center Point");
@@ -160,7 +164,7 @@ export class ShapeControllers {
         throw new Error("End angle must be greater than start angle");
       }
 
-      this.wheel.generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle, planeAngle, planeAxis);
+      this.wheel.generateSphericalSpiral(centerPoint, radius, direction, segments, turns, startAngle, endAngle, planeAngle, planeAxis, randomDisplacement);
       this.updateCount('SphericalSpiral', this.wheel.allPoints.length);
       return true;
     } catch (error) {
@@ -184,6 +188,7 @@ export class ShapeControllers {
       const spacing = parseFloat(document.getElementById("gridSpacing").value);
       const stepAmount = parseFloat(document.getElementById("gridStepAmount").value);
       const floors = parseInt(document.getElementById("gridFloors").value);
+      const randomDisplacement = this.getRandomDisplacementOptions();
 
       // Validate inputs
       validatePoint(centerPoint, "Center Point");
@@ -193,11 +198,48 @@ export class ShapeControllers {
       validateRange(stepAmount, 0, 20, "Step Amount");
       validateRange(floors, 1, 20, "Floors");
 
-      this.wheel.generateGrid(centerPoint, rows, columns, spacing, stepAmount, floors);
+      this.wheel.generateGrid(centerPoint, rows, columns, spacing, stepAmount, floors, randomDisplacement);
       this.updateCount('Grid', this.wheel.allPoints.length);
       return true;
     } catch (error) {
       alert(`Grid Generation Error: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Generate particle field from form inputs
+   */
+  generateParticleField() {
+    try {
+      const centerPoint = new THREE.Vector3(
+        parseFloat(document.getElementById("particleFieldCenterX").value),
+        parseFloat(document.getElementById("particleFieldCenterY").value),
+        parseFloat(document.getElementById("particleFieldCenterZ").value)
+      );
+      const width = parseFloat(document.getElementById("particleFieldWidth").value);
+      const depth = parseFloat(document.getElementById("particleFieldDepth").value);
+      const height = parseFloat(document.getElementById("particleFieldHeight").value);
+      const count = Number(document.getElementById("particleFieldCount").value);
+      const seed = document.getElementById("particleFieldSeed").value;
+
+      validatePoint(centerPoint, "Center Point");
+      validateRange(width, 0, 500, "Box X size");
+      validateRange(depth, 0, 500, "Box depth");
+      validateRange(height, 0, 500, "Box height");
+      if (width === 0 && depth === 0 && height === 0) {
+        throw new Error("At least one box dimension must be greater than 0.");
+      }
+      validateRange(count, 1, 2000, "Items");
+      if (!Number.isInteger(count)) {
+        throw new Error("Items must be a whole number.");
+      }
+
+      this.wheel.generateParticleField(centerPoint, width, depth, height, count, seed);
+      this.updateCount('ParticleField', this.wheel.allPoints.length);
+      return true;
+    } catch (error) {
+      alert(`Particle Field Generation Error: ${error.message}`);
       return false;
     }
   }
@@ -219,6 +261,7 @@ export class ShapeControllers {
       const direction = document.getElementById("cylinderSpiralDirection").value;
       const planeAngle = parseFloat(document.getElementById("cylinderSpiralPlaneAngle").value);
       const planeAxis = document.getElementById("cylinderSpiralPlaneAxis").value;
+      const randomDisplacement = this.getRandomDisplacementOptions();
 
       // Validate inputs
       validatePoint(center, "Center Point");
@@ -228,7 +271,7 @@ export class ShapeControllers {
       validateRange(turns, 0.1, 20, "Turns");
       validateRange(planeAngle, -360, 360, "Plane Angle");
 
-      this.wheel.generateCylinderSpiral(center, radius, height, segments, turns, direction, planeAngle, planeAxis);
+      this.wheel.generateCylinderSpiral(center, radius, height, segments, turns, direction, planeAngle, planeAxis, randomDisplacement);
       this.updateCount('CylinderSpiral', this.wheel.allPoints.length);
       return true;
     } catch (error) {
@@ -392,6 +435,7 @@ export class ShapeControllers {
       conicalSpiralInputs: "conicalSpiral",
       sphericalSpiralInputs: "sphericalSpiral",
       gridInputs: "grid",
+      particleFieldInputs: "particleField",
       pixelArtInputs: "pixelArt",
       voxelArtInputs: "voxelArt",
       gradientDyeInputs: "gradientDye",
@@ -410,6 +454,19 @@ export class ShapeControllers {
         element.style.display = shapeType === targetShape ? "block" : "none";
       }
     });
+
+    const randomDisplacementInputs = document.getElementById("randomDisplacementInputs");
+    if (randomDisplacementInputs) {
+      const supportsRandomDisplacement = [
+        "wheel",
+        "spiral",
+        "conicalSpiral",
+        "sphericalSpiral",
+        "grid",
+        "cylinderSpiral",
+      ].includes(shapeType);
+      randomDisplacementInputs.style.display = supportsRandomDisplacement ? "block" : "none";
+    }
 
     // Clear coordinates list
     document.getElementById("coordinates").innerHTML = "";
@@ -442,6 +499,7 @@ export class ShapeControllers {
       'generatedConicalSpiralCount',
       'generatedSphericalSpiralCount',
       'generatedGridCount',
+      'generatedParticleFieldCount',
       'generatedWallCount',
       'generated3DWallCount',
       'generatedCylinderSpiralCount',
@@ -472,5 +530,21 @@ export class ShapeControllers {
       element.style.color = '#2196F3';
       element.style.marginTop = '10px';
     }
+  }
+
+  getRandomDisplacementOptions() {
+    const enabled = Boolean(document.getElementById("randomDisplacementEnabled")?.checked);
+    if (!enabled) {
+      return { enabled: false, amount: 0, seed: "" };
+    }
+
+    const amount = parseFloat(document.getElementById("randomDisplacementAmount")?.value);
+    validateRange(amount, 0, 1000, "Random displacement amount");
+
+    return {
+      enabled: true,
+      amount,
+      seed: document.getElementById("randomDisplacementSeed")?.value || "",
+    };
   }
 }

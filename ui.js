@@ -77,6 +77,15 @@ export class UI {
   }
 
   /**
+   * Legacy method: Generate particle field
+   */
+  generateParticleField() {
+    if (this.uiManager.shapeControllers.generateParticleField()) {
+      this.uiManager.coordinatesDisplay.updateCoordinatesList("particleField");
+    }
+  }
+
+  /**
    * Legacy method: Generate cylinder spiral
    */
   generateCylinderSpiralUI() {

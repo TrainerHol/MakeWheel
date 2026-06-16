@@ -1,5 +1,6 @@
 import { Spiral } from './Spiral.js';
 import { COLORS, DEFAULTS } from '../utils/constants.js';
+import { applyRandomDisplacementToVectors } from '../utils/randomization.js';
 
 /**
  * Generates cylinder spiral shapes (spirals wrapped around a cylinder)
@@ -23,7 +24,8 @@ export class CylinderSpiral extends Spiral {
       turns = DEFAULTS.SPIRAL.TURNS,
       direction = DEFAULTS.SPIRAL.DIRECTION,
       planeAngle = 0,
-      planeAxis = 'x'
+      planeAxis = 'x',
+      randomDisplacement = null
     } = params;
 
     this.clearPoints();
@@ -58,6 +60,7 @@ export class CylinderSpiral extends Spiral {
 
     // Apply plane rotation
     this.applyPlaneRotation(spiralPoints, center, planeAngle, planeAxis);
+    applyRandomDisplacementToVectors(spiralPoints, randomDisplacement);
 
     // Create spheres for the rotated points
     spiralPoints.forEach((point) => {

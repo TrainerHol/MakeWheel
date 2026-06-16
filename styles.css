@@ -38,6 +38,10 @@ input[type="number"] {
   width: 50px;
 }
 
+input[type="text"] {
+  width: 100px;
+}
+
 .coordinate-item {
   cursor: pointer;
 }
@@ -170,6 +174,10 @@ body.voxel-art-mode #info div {
 
 .voxel-art-custom-furniture input[type="text"] {
   width: 155px;
+}
+
+.random-displacement-controls {
+  margin: 10px 0;
 }
 
 #pixelArtInputs h3,

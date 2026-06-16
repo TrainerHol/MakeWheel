@@ -1,5 +1,6 @@
 import { BaseShape } from '../base/BaseShape.js';
 import { COLORS, DEFAULTS } from '../utils/constants.js';
+import { applyRandomDisplacementToVectors } from '../utils/randomization.js';
 
 /**
  * Generates grid patterns with points arranged in rows and columns
@@ -21,7 +22,8 @@ export class Grid extends BaseShape {
       columns = DEFAULTS.GRID.COLUMNS,
       spacing = DEFAULTS.GRID.SPACING,
       stepAmount = DEFAULTS.GRID.STEP_AMOUNT,
-      floors = DEFAULTS.GRID.FLOORS
+      floors = DEFAULTS.GRID.FLOORS,
+      randomDisplacement = null
     } = params;
 
     this.clearPoints();
@@ -59,6 +61,8 @@ export class Grid extends BaseShape {
         lastPoint = point;
       }
     }
+
+    applyRandomDisplacementToVectors(points, randomDisplacement);
 
     // Create spheres for each point
     points.forEach((point) => {

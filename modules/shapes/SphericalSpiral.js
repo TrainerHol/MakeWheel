@@ -1,5 +1,6 @@
 import { Spiral } from './Spiral.js';
 import { COLORS, DEFAULTS, ANIMATION } from '../utils/constants.js';
+import { applyRandomDisplacementToVectors } from '../utils/randomization.js';
 
 /**
  * Generates spherical spiral shapes (spirals on the surface of a sphere)
@@ -24,7 +25,8 @@ export class SphericalSpiral extends Spiral {
       startAngle = DEFAULTS.SPHERICAL_SPIRAL.START_ANGLE,
       endAngle = DEFAULTS.SPHERICAL_SPIRAL.END_ANGLE,
       planeAngle = 0,
-      planeAxis = 'x'
+      planeAxis = 'x',
+      randomDisplacement = null
     } = params;
 
     this.clearPoints();
@@ -57,6 +59,7 @@ export class SphericalSpiral extends Spiral {
 
     // Apply plane rotation
     this.applyPlaneRotation(spiralPoints, centerPoint, planeAngle, planeAxis);
+    applyRandomDisplacementToVectors(spiralPoints, randomDisplacement);
 
     // Create spheres for the rotated points
     spiralPoints.forEach((point) => {

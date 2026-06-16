@@ -28,7 +28,8 @@ export const COLORS = {
   SELECTED_CELL: 0x00ff00, // Green
   FLOOR_POINT: 0x0066ff,  // Blue
   WALL_POINT: 0xff0000,   // Red
-  CENTER_POINT: 0x00ff00  // Green
+  CENTER_POINT: 0x00ff00, // Green
+  PARTICLE_FIELD: 0x8fd8ff
 };
 
 // Size constants
@@ -104,6 +105,15 @@ export const DEFAULTS = {
     SPACING: 4,
     STEP_AMOUNT: 2,
     FLOORS: 1
+  },
+
+  // Particle Field
+  PARTICLE_FIELD: {
+    CENTER: { x: 0, y: 0, z: 0 },
+    WIDTH: 50,
+    DEPTH: 50,
+    HEIGHT: 20,
+    COUNT: 100
   },
   
   // Maze

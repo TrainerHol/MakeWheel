@@ -1,5 +1,6 @@
 import { BaseShape } from '../base/BaseShape.js';
 import { COLORS, DEFAULTS, ANIMATION } from '../utils/constants.js';
+import { applyRandomDisplacementToVectors } from '../utils/randomization.js';
 
 /**
  * Base class for spiral generation with common spiral functionality
@@ -22,7 +23,8 @@ export class Spiral extends BaseShape {
       segments = DEFAULTS.SPIRAL.SEGMENTS,
       turns = DEFAULTS.SPIRAL.TURNS,
       planeAngle = 0,
-      planeAxis = 'x'
+      planeAxis = 'x',
+      randomDisplacement = null
     } = params;
 
     this.clearPoints();
@@ -60,6 +62,7 @@ export class Spiral extends BaseShape {
 
     // Apply plane rotation
     this.applyPlaneRotation(spiralPoints, centerPoint, planeAngle, planeAxis);
+    applyRandomDisplacementToVectors(spiralPoints, randomDisplacement);
 
     // Create spheres for the rotated points
     spiralPoints.forEach((point) => {
