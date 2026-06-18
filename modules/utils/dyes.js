@@ -156,3 +156,32 @@ export const PIXEL_ART_COLORS = PIXEL_ART_DYE_PALETTE.flatMap((group) =>
     category: group.category,
   }))
 );
+
+export const WIDE_SPECTRUM_DYE_IDS = new Set([
+  "ruby-red",
+  "cherry-pink",
+  "canary-yellow",
+  "vanilla-yellow",
+  "dragoon-blue",
+  "turquoise-blue",
+  "carmine-red",
+  "neon-pink",
+  "bright-orange",
+  "neon-yellow",
+  "neon-green",
+  "azure-blue",
+  "violet-purple",
+]);
+
+export function isRandomColorSpecialDye(color) {
+  return color?.category === "Special" || WIDE_SPECTRUM_DYE_IDS.has(color?.id);
+}
+
+export function getRandomColorDyePalette({
+  includeSpecialDyes = false,
+  palette = PIXEL_ART_COLORS,
+} = {}) {
+  return includeSpecialDyes
+    ? [...palette]
+    : palette.filter((color) => !isRandomColorSpecialDye(color));
+}

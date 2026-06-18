@@ -79,6 +79,7 @@ h2 {
 body.pixel-art-mode,
 body.voxel-art-mode,
 body.gradient-dye-mode,
+body.random-color-mode,
 body.custom-design-converter-mode {
   background: #000000;
 }
@@ -128,7 +129,8 @@ body.voxel-art-mode #info div {
   grid-template-columns: 360px minmax(0, 1fr);
 }
 
-#gradientDyeInputs {
+#gradientDyeInputs,
+#randomColorInputs {
   max-width: 380px;
 }
 
@@ -137,6 +139,7 @@ body.voxel-art-mode #info div {
 }
 
 #gradientDyeInputs h3,
+#randomColorInputs h3,
 #customDesignConverterInputs h3 {
   margin: 0 0 8px;
 }
@@ -147,6 +150,8 @@ body.voxel-art-mode #info div {
 
 #gradientDyeInputs .pixel-art-status,
 #gradientDyeInputs .pixel-art-import-status,
+#randomColorInputs .pixel-art-status,
+#randomColorInputs .pixel-art-import-status,
 #customDesignConverterInputs .pixel-art-status,
 #customDesignConverterInputs .pixel-art-import-status {
   margin-top: 8px;
@@ -210,6 +215,7 @@ body.voxel-art-mode #info div {
 .voxel-art-footer,
 .gradient-dye-control-row,
 .gradient-dye-gradient-controls,
+.random-color-control-row,
 .custom-design-converter-control-row {
   display: flex;
   flex-wrap: wrap;

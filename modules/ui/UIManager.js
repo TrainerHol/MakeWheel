@@ -5,6 +5,7 @@ import { CameraControls } from './CameraControls.js';
 import { PixelArtEditor } from './PixelArtEditor.js';
 import { VoxelArtEditor } from './VoxelArtEditor.js';
 import { GradientDyeEditor } from './GradientDyeEditor.js';
+import { RandomColorEditor } from './RandomColorEditor.js';
 import { CustomDesignConverterEditor } from './CustomDesignConverterEditor.js';
 
 /**
@@ -26,6 +27,7 @@ export class UIManager {
     this.pixelArtEditor = new PixelArtEditor();
     this.voxelArtEditor = new VoxelArtEditor();
     this.gradientDyeEditor = new GradientDyeEditor(sceneManager, this.cameraControls);
+    this.randomColorEditor = new RandomColorEditor(sceneManager, this.cameraControls);
     this.customDesignConverterEditor = new CustomDesignConverterEditor();
   }
 
@@ -38,6 +40,7 @@ export class UIManager {
     this.pixelArtEditor.init();
     this.voxelArtEditor.init();
     this.gradientDyeEditor.init();
+    this.randomColorEditor.init();
     this.customDesignConverterEditor.init();
     
     // Connect camera controls to scene manager
@@ -166,6 +169,8 @@ export class UIManager {
           return;
         case "gradientDye":
           return;
+        case "randomColor":
+          return;
         case "customDesignConverter":
           return;
         default:
@@ -205,17 +210,20 @@ export class UIManager {
     const isPixelArt = this.shapeType === "pixelArt";
     const isVoxelArt = this.shapeType === "voxelArt";
     const isGradientDye = this.shapeType === "gradientDye";
+    const isRandomColor = this.shapeType === "randomColor";
     const isCustomDesignConverter = this.shapeType === "customDesignConverter";
     const isArtTool = isPixelArt || isVoxelArt;
-    const isSpecialTool = isArtTool || isGradientDye || isCustomDesignConverter;
+    const isSpecialTool = isArtTool || isGradientDye || isRandomColor || isCustomDesignConverter;
 
     this.pixelArtEditor.setActive(isPixelArt);
     this.voxelArtEditor.setActive(isVoxelArt);
     this.gradientDyeEditor.setActive(isGradientDye);
+    this.randomColorEditor.setActive(isRandomColor);
     this.customDesignConverterEditor.setActive(isCustomDesignConverter);
     document.body.classList.toggle("pixel-art-mode", isPixelArt);
     document.body.classList.toggle("voxel-art-mode", isVoxelArt);
     document.body.classList.toggle("gradient-dye-mode", isGradientDye);
+    document.body.classList.toggle("random-color-mode", isRandomColor);
     document.body.classList.toggle("custom-design-converter-mode", isCustomDesignConverter);
     
     // Hide/show generate button based on shape type
@@ -255,6 +263,10 @@ export class UIManager {
   resetCameraToShape() {
     if (this.shapeType === "gradientDye") {
       this.gradientDyeEditor.fitCameraToPreview();
+      return;
+    }
+    if (this.shapeType === "randomColor") {
+      this.randomColorEditor.fitCameraToPreview();
       return;
     }
 
