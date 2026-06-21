@@ -20,8 +20,8 @@ export class UIManager {
     this.shapeType = "wheel";
 
     // Initialize sub-components
-    this.shapeControllers = new ShapeControllers(wheel, maze, maze3d, wheel.roomShape);
     this.fileHandlers = new FileHandlers();
+    this.shapeControllers = new ShapeControllers(wheel, maze, maze3d, wheel.roomShape, this.fileHandlers);
     this.coordinatesDisplay = new CoordinatesDisplay(wheel, maze, maze3d);
     this.cameraControls = new CameraControls(sceneManager);
     this.pixelArtEditor = new PixelArtEditor();
@@ -115,6 +115,13 @@ export class UIManager {
     document.getElementById("floorFileInput").addEventListener("change", (e) => {
       this.fileHandlers.handleFloorFileUpload(e);
     });
+
+    const particleJumpTemplateFileInput = document.getElementById("particleJumpTemplateFileInput");
+    if (particleJumpTemplateFileInput) {
+      particleJumpTemplateFileInput.addEventListener("change", (e) => {
+        this.fileHandlers.handleParticleJumpTemplateUpload(e);
+      });
+    }
 
     document.getElementById("processDesignBtn").addEventListener("click", () => {
       this.processDesign();
@@ -278,6 +285,16 @@ export class UIManager {
     );
   }
 
+  getProcessingOptions() {
+    if (this.shapeType !== "particleField") {
+      return {};
+    }
+
+    return {
+      randomItemRotation: Boolean(document.getElementById("particleFieldRandomRotation")?.checked),
+    };
+  }
+
   /**
    * Process the uploaded design with generated points
    */
@@ -286,7 +303,8 @@ export class UIManager {
       this.shapeType,
       this.wheel,
       this.maze,
-      this.maze3d
+      this.maze3d,
+      this.getProcessingOptions()
     );
 
     if (success) {

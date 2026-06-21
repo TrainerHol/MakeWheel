@@ -8,6 +8,8 @@ export class FileHandlers {
     this.uploadedDesign = null;
     this.uploadedFloorDesign = null;
     this.uploadedRoomFloorDesign = null;
+    this.uploadedParticleJumpTemplate = null;
+    this.particleJumpTemplateMetrics = null;
     this.processedDesign = null;
   }
 
@@ -118,10 +120,116 @@ export class FileHandlers {
   }
 
   /**
+   * Handle Particle Field jump template upload.
+   */
+  handleParticleJumpTemplateUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      validateJsonFile(file);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const jsonData = JSON.parse(e.target.result);
+          const metrics = this.extractParticleJumpTemplateMetrics(jsonData);
+
+          this.uploadedParticleJumpTemplate = jsonData;
+          this.particleJumpTemplateMetrics = metrics;
+          document.getElementById("processDesignBtn").style.display = "block";
+          this.setParticleJumpTemplateStatus(
+            `Jump Template Loaded: flat ${metrics.flatMax.toFixed(4)}, height ${metrics.heightMax.toFixed(4)}`,
+            false
+          );
+          console.log("Particle Field jump template uploaded successfully:", metrics.name);
+        } catch (parseError) {
+          this.uploadedParticleJumpTemplate = null;
+          this.particleJumpTemplateMetrics = null;
+          this.setParticleJumpTemplateStatus(parseError.message, true);
+          alert(`Invalid jump template JSON file: ${parseError.message}`);
+        }
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      this.uploadedParticleJumpTemplate = null;
+      this.particleJumpTemplateMetrics = null;
+      this.setParticleJumpTemplateStatus(error.message, true);
+      alert(`Jump Template Upload Error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Calculate Particle Field jump limits from a two-item MakePlace template.
+   */
+  extractParticleJumpTemplateMetrics(jsonData) {
+    const rootLocation = this.getMakePlaceLocation(jsonData, "Jump template root");
+
+    if (!Array.isArray(jsonData.attachments) || jsonData.attachments.length !== 1) {
+      throw new Error("Jump template must contain exactly one immediate attachment.");
+    }
+
+    const attachment = jsonData.attachments[0];
+    const attachmentLocation = this.getMakePlaceLocation(attachment, "Jump template attachment");
+    const delta = [
+      attachmentLocation[0] - rootLocation[0],
+      attachmentLocation[1] - rootLocation[1],
+      attachmentLocation[2] - rootLocation[2],
+    ];
+    const flatMax = Math.hypot(delta[0], delta[1]) / 100;
+    const heightMax = Math.abs(delta[2]) / 100;
+
+    if (flatMax <= 0) {
+      throw new Error("Jump template flat distance must be greater than 0.");
+    }
+
+    return {
+      name: jsonData.name || "Jump Template",
+      delta,
+      flatMax,
+      heightMax,
+    };
+  }
+
+  getMakePlaceLocation(design, label) {
+    const location = design?.transform?.location;
+    if (!Array.isArray(location) || location.length !== 3) {
+      throw new Error(`${label} must contain transform.location with three numbers.`);
+    }
+
+    location.forEach((value, index) => {
+      if (!Number.isFinite(Number(value))) {
+        throw new Error(`${label} transform.location[${index}] must be a number.`);
+      }
+    });
+
+    return location.map(Number);
+  }
+
+  setParticleJumpTemplateStatus(message, isError) {
+    if (typeof document === "undefined") return;
+
+    const element = document.getElementById("particleJumpTemplateStatus");
+    if (!element) return;
+
+    element.textContent = message;
+    element.style.fontWeight = "bold";
+    element.style.color = isError ? "#f44336" : "#2196F3";
+    element.style.marginTop = "6px";
+  }
+
+  /**
    * Process uploaded design with generated shape points
    */
-  processDesign(shapeType, wheel, maze, maze3d) {
-    if (!this.uploadedDesign) {
+  processDesign(shapeType, wheel, maze, maze3d, options = {}) {
+    const primaryDesign = this.getPrimaryDesignForShape(shapeType);
+
+    if (!primaryDesign) {
+      if (shapeType === "particleField") {
+        alert("Please upload a design file or Particle Field jump template first.");
+        return false;
+      }
+
       alert("Please upload a design file first.");
       return false;
     }
@@ -134,30 +242,30 @@ export class FileHandlers {
 
     try {
       this.processedDesign = {
-        ...this.uploadedDesign,
+        ...primaryDesign,
         attachments: [],
       };
 
       delete this.processedDesign.transform;
 
       points.forEach((point, index) => {
-        let designToUse = this.uploadedDesign;
+        let designToUse = primaryDesign;
 
         // For 3D maze, use floor design for floor pieces
         if (shapeType === "maze3d" && point.userData && point.userData.type === "floor") {
-          designToUse = this.uploadedFloorDesign || this.uploadedDesign;
+          designToUse = this.uploadedFloorDesign || primaryDesign;
         }
 
         // For rooms, use appropriate design based on point type
         if (shapeType === "room" && point.userData && point.userData.type === "floor") {
-          designToUse = this.uploadedRoomFloorDesign || this.uploadedDesign;
+          designToUse = this.uploadedRoomFloorDesign || primaryDesign;
         }
 
         const newAttachment = {
           ...designToUse,
           transform: {
             location: [point.position.x * 100, point.position.z * 100, point.position.y * 100], // Swap Y/Z for Unreal
-            rotation: this.calculateRotation(shapeType, point, designToUse),
+            rotation: this.calculateRotation(shapeType, point, designToUse, options),
             scale: designToUse.transform.scale,
           },
         };
@@ -166,7 +274,7 @@ export class FileHandlers {
         this.processedDesign.attachments.push(newAttachment);
 
         // Process nested attachments
-        this.processAttachments(designToUse, newAttachment, point, shapeType);
+        this.processAttachments(designToUse, newAttachment, point, shapeType, options);
       });
 
       console.log("Design processed successfully");
@@ -176,6 +284,28 @@ export class FileHandlers {
       alert(`Design Processing Error: ${error.message}`);
       return false;
     }
+  }
+
+  getPrimaryDesignForShape(shapeType) {
+    if (this.uploadedDesign) {
+      return this.uploadedDesign;
+    }
+
+    if (shapeType === "particleField" && this.uploadedParticleJumpTemplate) {
+      return this.createParticleTemplateRootDesign(this.uploadedParticleJumpTemplate);
+    }
+
+    return null;
+  }
+
+  createParticleTemplateRootDesign(template) {
+    const rootDesign = {
+      ...template,
+      attachments: [],
+    };
+
+    delete rootDesign.attachments;
+    return rootDesign;
   }
 
   /**
@@ -197,7 +327,7 @@ export class FileHandlers {
   /**
    * Calculate rotation for different shape types
    */
-  calculateRotation(shapeType, point, designToUse) {
+  calculateRotation(shapeType, point, designToUse, options = {}) {
     if (shapeType === "maze" || shapeType === "maze3d") {
       // Add PI/2 to align with MakePlace for maze walls
       const angle = point.rotation.y + Math.PI / 2;
@@ -214,6 +344,13 @@ export class FileHandlers {
         const angle = rotationY + Math.PI / 2;
         return [0, 0, Math.sin(angle / 2), Math.cos(angle / 2)];
       }
+    } else if (shapeType === "particleField") {
+      const yaw = this.getParticleFieldYaw(point, options);
+      if (yaw === null) {
+        return designToUse.transform.rotation;
+      }
+
+      return this.composeYawRotation(designToUse.transform.rotation, yaw);
     } else {
       return designToUse.transform.rotation;
     }
@@ -222,12 +359,16 @@ export class FileHandlers {
   /**
    * Process nested attachments recursively
    */
-  processAttachments(originalDesign, targetDesign, referencePoint, shapeType) {
+  processAttachments(originalDesign, targetDesign, referencePoint, shapeType, options = {}) {
     if (!originalDesign.attachments) return;
 
     if (!targetDesign.attachments) {
       targetDesign.attachments = [];
     }
+
+    const particleYaw = shapeType === "particleField"
+      ? this.getParticleFieldYaw(referencePoint, options)
+      : null;
 
     originalDesign.attachments.forEach((attachment) => {
       try {
@@ -266,6 +407,17 @@ export class FileHandlers {
             ],
             rotation: rotatedRotation,
           };
+        } else if (shapeType === "particleField" && particleYaw !== null) {
+          const rotatedPosition = this.rotateMakePlaceFlatPosition(relativePosition, particleYaw);
+          newAttachment.transform = {
+            ...attachment.transform,
+            location: [
+              referencePoint.position.x * 100 + rotatedPosition[0],
+              referencePoint.position.z * 100 + rotatedPosition[1],
+              referencePoint.position.y * 100 + rotatedPosition[2]
+            ],
+            rotation: this.composeYawRotation(attachment.transform.rotation, particleYaw),
+          };
         } else {
           newAttachment.transform = {
             ...attachment.transform,
@@ -285,6 +437,68 @@ export class FileHandlers {
     });
   }
 
+  getParticleFieldYaw(point, options = {}) {
+    const hasExplicitOption = Object.prototype.hasOwnProperty.call(options, "randomItemRotation");
+    const randomRotationEnabled = hasExplicitOption
+      ? Boolean(options.randomItemRotation)
+      : Boolean(point.userData?.particleRandomRotation);
+
+    if (!randomRotationEnabled) {
+      return null;
+    }
+
+    if (!point.userData) {
+      point.userData = {};
+    }
+
+    if (!Number.isFinite(point.userData.particleYaw)) {
+      point.userData.particleYaw = Math.random() * Math.PI * 2;
+    }
+
+    return point.userData.particleYaw;
+  }
+
+  rotateMakePlaceFlatPosition(position, yaw) {
+    const cos = Math.cos(yaw);
+    const sin = Math.sin(yaw);
+    return [
+      position[0] * cos - position[1] * sin,
+      position[0] * sin + position[1] * cos,
+      position[2],
+    ];
+  }
+
+  composeYawRotation(rotation, yaw) {
+    return this.multiplyQuaternions(
+      [0, 0, Math.sin(yaw / 2), Math.cos(yaw / 2)],
+      this.normalizeQuaternion(rotation)
+    );
+  }
+
+  normalizeQuaternion(rotation) {
+    if (!Array.isArray(rotation) || rotation.length !== 4) {
+      return [0, 0, 0, 1];
+    }
+
+    const quaternion = rotation.map(Number);
+    if (quaternion.some((value) => !Number.isFinite(value))) {
+      return [0, 0, 0, 1];
+    }
+
+    return quaternion;
+  }
+
+  multiplyQuaternions(left, right) {
+    const [ax, ay, az, aw] = left;
+    const [bx, by, bz, bw] = right;
+    return [
+      aw * bx + ax * bw + ay * bz - az * by,
+      aw * by - ax * bz + ay * bw + az * bx,
+      aw * bz + ax * by - ay * bx + az * bw,
+      aw * bw - ax * bx - ay * by - az * bz,
+    ];
+  }
+
   /**
    * Download the processed design as JSON file
    */
@@ -296,7 +510,7 @@ export class FileHandlers {
 
     try {
       const shapeTypeName = shapeType.charAt(0).toUpperCase() + shapeType.slice(1);
-      const originalName = this.uploadedDesign.name || "design";
+      const originalName = this.uploadedDesign?.name || this.uploadedParticleJumpTemplate?.name || "design";
       const fileName = `${originalName}_${shapeTypeName}.json`;
 
       const dataStr = "data:text/json;charset=utf-8," + 
@@ -322,8 +536,12 @@ export class FileHandlers {
   reset() {
     this.uploadedDesign = null;
     this.uploadedFloorDesign = null;
+    this.uploadedRoomFloorDesign = null;
+    this.uploadedParticleJumpTemplate = null;
+    this.particleJumpTemplateMetrics = null;
     this.processedDesign = null;
     document.getElementById("processDesignBtn").style.display = "none";
     document.getElementById("downloadBtn").style.display = "none";
+    this.setParticleJumpTemplateStatus("", false);
   }
 }

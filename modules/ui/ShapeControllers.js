@@ -5,11 +5,12 @@ import { DEFAULTS } from '../utils/constants.js';
  * Handles form controls and generation for all shape types
  */
 export class ShapeControllers {
-  constructor(wheel, maze, maze3d, room = null) {
+  constructor(wheel, maze, maze3d, room = null, fileHandlers = null) {
     this.wheel = wheel;
     this.maze = maze;
     this.maze3d = maze3d;
     this.room = room;
+    this.fileHandlers = fileHandlers;
   }
 
   /**
@@ -221,7 +222,9 @@ export class ShapeControllers {
       const depth = parseFloat(document.getElementById("particleFieldDepth").value);
       const height = parseFloat(document.getElementById("particleFieldHeight").value);
       const count = Number(document.getElementById("particleFieldCount").value);
-      const seed = document.getElementById("particleFieldSeed").value;
+      const connected = Boolean(document.getElementById("particleFieldConnected")?.checked);
+      const randomItemRotation = Boolean(document.getElementById("particleFieldRandomRotation")?.checked);
+      const jumpTemplateMetrics = this.fileHandlers ? this.fileHandlers.particleJumpTemplateMetrics : null;
 
       validatePoint(centerPoint, "Center Point");
       validateRange(width, 0, 500, "Box X size");
@@ -235,8 +238,18 @@ export class ShapeControllers {
         throw new Error("Items must be a whole number.");
       }
 
-      this.wheel.generateParticleField(centerPoint, width, depth, height, count, seed);
-      this.updateCount('ParticleField', this.wheel.allPoints.length);
+      if (connected && !jumpTemplateMetrics) {
+        throw new Error("Upload a Particle Field jump template before generating a connected chain.");
+      }
+
+      this.wheel.generateParticleField(centerPoint, width, depth, height, count, {
+        connected,
+        jumpTemplateMetrics,
+        randomItemRotation,
+      });
+
+      const warning = this.wheel.particleFieldShape?.generationWarning || '';
+      this.updateCount('ParticleField', this.wheel.allPoints.length, warning ? `(${warning})` : '');
       return true;
     } catch (error) {
       alert(`Particle Field Generation Error: ${error.message}`);

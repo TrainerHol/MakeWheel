@@ -126,7 +126,7 @@ export class Wheel {
     this.syncProperties();
   }
 
-  generateParticleField(centerPoint, width, depth, height, count, seed) {
+  generateParticleField(centerPoint, width, depth, height, count, options = {}) {
     this.currentShape = this.particleFieldShape;
     this.shapeType = "particleField";
     this.particleFieldShape.generate({
@@ -135,7 +135,7 @@ export class Wheel {
       depth,
       height,
       count,
-      seed
+      options
     });
     this.syncProperties();
   }
