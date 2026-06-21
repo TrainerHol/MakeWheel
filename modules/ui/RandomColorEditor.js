@@ -1,4 +1,8 @@
-import { PIXEL_ART_COLORS, getRandomColorDyePalette } from "../utils/dyes.js";
+import {
+  PIXEL_ART_COLORS,
+  getRandomColorDyePalette,
+  isRandomColorSpecialDye,
+} from "../utils/dyes.js";
 import {
   applyRandomColorsToDesign,
   mapRandomColorsToEntries,
@@ -24,6 +28,7 @@ export class RandomColorEditor {
     this.previewMeshes = [];
     this.previewGeometry = null;
     this.autoSeed = this.createAutoSeed();
+    this.selectedColorIds = new Set(PIXEL_ART_COLORS.map((color) => color.id));
     this.elements = {};
   }
 
@@ -32,6 +37,7 @@ export class RandomColorEditor {
     if (!this.elements.root) return;
 
     this.bindEvents();
+    this.renderPalette();
     this.updateStatus();
   }
 
@@ -58,6 +64,9 @@ export class RandomColorEditor {
       rerollBtn: document.getElementById("randomColorRerollBtn"),
       includeSpecial: document.getElementById("randomColorIncludeSpecial"),
       seedInput: document.getElementById("randomColorSeed"),
+      palette: document.getElementById("randomColorPalette"),
+      selectAllBtn: document.getElementById("randomColorSelectAllBtn"),
+      deselectAllBtn: document.getElementById("randomColorDeselectAllBtn"),
       status: document.getElementById("randomColorStatus"),
       importStatus: document.getElementById("randomColorImportStatus"),
     };
@@ -80,6 +89,14 @@ export class RandomColorEditor {
       this.rerollColors();
     });
 
+    this.elements.selectAllBtn?.addEventListener("click", () => {
+      this.selectAllColors();
+    });
+
+    this.elements.deselectAllBtn?.addEventListener("click", () => {
+      this.deselectAllColors();
+    });
+
     this.elements.fileInput?.addEventListener("change", () => {
       if (this.elements.fileInput.files?.[0]) {
         this.importJsonFromFile();
@@ -89,6 +106,7 @@ export class RandomColorEditor {
     });
 
     this.elements.includeSpecial?.addEventListener("change", () => {
+      this.updatePaletteSelection();
       this.updatePreview();
       this.updateStatus();
     });
@@ -146,7 +164,11 @@ export class RandomColorEditor {
 
     const THREE = window.THREE;
     const targetEntries = this.entries.filter((entry) => entry.isDyeTarget);
-    const mappedTargets = mapRandomColorsToEntries(targetEntries, this.getRandomOptions());
+    const randomOptions = this.getRandomOptions();
+    let mappedTargets = [];
+    if (getRandomColorDyePalette(randomOptions).length > 0) {
+      mappedTargets = mapRandomColorsToEntries(targetEntries, randomOptions);
+    }
     const targetColorsByPath = new Map(
       mappedTargets.map((entry) => [this.pathKey(entry.path), entry.color])
     );
@@ -251,8 +273,12 @@ export class RandomColorEditor {
     return {
       includeSpecialDyes: Boolean(this.elements.includeSpecial?.checked),
       seed: this.elements.seedInput?.value.trim() || this.autoSeed,
-      palette: PIXEL_ART_COLORS,
+      palette: this.getSelectedPalette(),
     };
+  }
+
+  getSelectedPalette() {
+    return PIXEL_ART_COLORS.filter((color) => this.selectedColorIds.has(color.id));
   }
 
   updateStatus() {
@@ -260,11 +286,12 @@ export class RandomColorEditor {
 
     const paletteCount = getRandomColorDyePalette({
       includeSpecialDyes: Boolean(this.elements.includeSpecial?.checked),
-      palette: PIXEL_ART_COLORS,
+      palette: this.getSelectedPalette(),
     }).length;
+    const selectedCount = this.selectedColorIds.size;
 
     if (!this.originalDesign) {
-      this.elements.status.textContent = `No design imported. Palette: ${paletteCount} colors.`;
+      this.elements.status.textContent = `No design imported. Palette: ${paletteCount} active colors, ${selectedCount} selected.`;
       if (this.elements.downloadBtn) {
         this.elements.downloadBtn.disabled = true;
       }
@@ -275,10 +302,72 @@ export class RandomColorEditor {
     const skippedCount = this.entries.length - targetCount;
     this.elements.status.textContent =
       `${this.formatKind(this.designKind)}: ${this.entries.length} located item${this.entries.length === 1 ? "" : "s"}, ` +
-      `${targetCount} with default dye, ${skippedCount} skipped, palette: ${paletteCount} colors`;
+      `${targetCount} with default dye, ${skippedCount} skipped, palette: ${paletteCount} active colors, ${selectedCount} selected`;
     if (this.elements.downloadBtn) {
-      this.elements.downloadBtn.disabled = false;
+      this.elements.downloadBtn.disabled = paletteCount < 1;
     }
+  }
+
+  renderPalette() {
+    if (!this.elements.palette) return;
+
+    this.elements.palette.innerHTML = "";
+    PIXEL_ART_COLORS.forEach((color) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "pixel-palette-swatch random-color-palette-swatch";
+      button.dataset.colorId = color.id;
+      button.title = color.name;
+      button.setAttribute("aria-label", color.name);
+      button.setAttribute("aria-pressed", "true");
+      button.style.backgroundColor = this.toCssColor(color.hex);
+      button.addEventListener("click", () => {
+        this.toggleColor(color.id);
+      });
+      this.elements.palette.appendChild(button);
+    });
+
+    this.updatePaletteSelection();
+  }
+
+  toggleColor(colorId) {
+    if (this.selectedColorIds.has(colorId)) {
+      this.selectedColorIds.delete(colorId);
+    } else {
+      this.selectedColorIds.add(colorId);
+    }
+
+    this.updatePaletteSelection();
+    this.updatePreview();
+    this.updateStatus();
+  }
+
+  selectAllColors() {
+    this.selectedColorIds = new Set(PIXEL_ART_COLORS.map((color) => color.id));
+    this.updatePaletteSelection();
+    this.updatePreview();
+    this.updateStatus();
+  }
+
+  deselectAllColors() {
+    this.selectedColorIds.clear();
+    this.updatePaletteSelection();
+    this.updatePreview();
+    this.updateStatus();
+  }
+
+  updatePaletteSelection() {
+    if (!this.elements.palette) return;
+
+    const includeSpecialDyes = Boolean(this.elements.includeSpecial?.checked);
+    this.elements.palette.querySelectorAll(".random-color-palette-swatch").forEach((button) => {
+      const color = PIXEL_ART_COLORS.find((entry) => entry.id === button.dataset.colorId);
+      const selected = this.selectedColorIds.has(button.dataset.colorId);
+      const available = includeSpecialDyes || !isRandomColorSpecialDye(color);
+      button.classList.toggle("active", selected);
+      button.classList.toggle("random-color-swatch-filtered", selected && !available);
+      button.setAttribute("aria-pressed", String(selected));
+    });
   }
 
   getImportSummary(prefix) {

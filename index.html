@@ -168,6 +168,11 @@
           <input type="checkbox" id="particleFieldRandomRotation" />
           <label for="particleFieldRandomRotation">Random item rotation</label>
         </div>
+        <div>
+          <input type="checkbox" id="particleFieldHeightRestriction" />
+          <label for="particleFieldHeightRestriction">Height restriction</label>
+          Clearance: <input type="number" id="particleFieldHeightClearance" min="0" max="500" value="2" step="0.1" />
+        </div>
         <div id="generatedParticleFieldCount"></div>
       </div>
 
@@ -604,6 +609,11 @@
           <label for="randomColorSeed">Seed:</label>
           <input type="text" id="randomColorSeed" placeholder="optional" />
         </div>
+        <div class="random-color-control-row">
+          <button id="randomColorSelectAllBtn" type="button">Select All</button>
+          <button id="randomColorDeselectAllBtn" type="button">Deselect All</button>
+        </div>
+        <div id="randomColorPalette" class="pixel-art-palette random-color-palette"></div>
         <div id="randomColorStatus" class="pixel-art-status"></div>
         <div id="randomColorImportStatus" class="pixel-art-import-status" role="status" aria-live="polite"></div>
       </div>

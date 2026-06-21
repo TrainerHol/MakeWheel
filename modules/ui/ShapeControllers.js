@@ -224,12 +224,15 @@ export class ShapeControllers {
       const count = Number(document.getElementById("particleFieldCount").value);
       const connected = Boolean(document.getElementById("particleFieldConnected")?.checked);
       const randomItemRotation = Boolean(document.getElementById("particleFieldRandomRotation")?.checked);
+      const heightRestrictionEnabled = Boolean(document.getElementById("particleFieldHeightRestriction")?.checked);
+      const heightClearance = parseFloat(document.getElementById("particleFieldHeightClearance")?.value || "0");
       const jumpTemplateMetrics = this.fileHandlers ? this.fileHandlers.particleJumpTemplateMetrics : null;
 
       validatePoint(centerPoint, "Center Point");
       validateRange(width, 0, 500, "Box X size");
       validateRange(depth, 0, 500, "Box depth");
       validateRange(height, 0, 500, "Box height");
+      validateRange(heightClearance, 0, 500, "Height restriction clearance");
       if (width === 0 && depth === 0 && height === 0) {
         throw new Error("At least one box dimension must be greater than 0.");
       }
@@ -246,6 +249,8 @@ export class ShapeControllers {
         connected,
         jumpTemplateMetrics,
         randomItemRotation,
+        heightRestrictionEnabled,
+        heightClearance,
       });
 
       const warning = this.wheel.particleFieldShape?.generationWarning || '';
