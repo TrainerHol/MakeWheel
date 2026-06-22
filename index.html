@@ -169,9 +169,10 @@
           <label for="particleFieldRandomRotation">Random item rotation</label>
         </div>
         <div>
-          <input type="checkbox" id="particleFieldHeightRestriction" />
-          <label for="particleFieldHeightRestriction">Height restriction</label>
-          Clearance: <input type="number" id="particleFieldHeightClearance" min="0" max="500" value="2" step="0.1" />
+          <input type="checkbox" id="particleFieldObjectClearance" />
+          <label for="particleFieldObjectClearance">Avoid objects blocking jumps</label>
+          Object radius: <input type="number" id="particleFieldObjectRadius" min="0" max="500" value="0.5" step="0.1" />
+          Object height: <input type="number" id="particleFieldObjectHeight" min="0" max="500" value="2" step="0.1" />
         </div>
         <div id="generatedParticleFieldCount"></div>
       </div>

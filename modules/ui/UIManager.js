@@ -292,6 +292,9 @@ export class UIManager {
 
     return {
       randomItemRotation: Boolean(document.getElementById("particleFieldRandomRotation")?.checked),
+      objectClearanceEnabled: Boolean(document.getElementById("particleFieldObjectClearance")?.checked),
+      objectClearanceRadius: parseFloat(document.getElementById("particleFieldObjectRadius")?.value || "0"),
+      objectClearanceHeight: parseFloat(document.getElementById("particleFieldObjectHeight")?.value || "0"),
     };
   }
 

@@ -29,8 +29,9 @@ export class ParticleField extends BaseShape {
       connected = false,
       jumpTemplateMetrics = null,
       randomItemRotation = false,
-      heightRestrictionEnabled = false,
-      heightClearance = 0,
+      objectClearanceEnabled = false,
+      objectClearanceRadius = 0,
+      objectClearanceHeight = 0,
     } = options;
 
     const validation = this.validateInput({
@@ -40,8 +41,9 @@ export class ParticleField extends BaseShape {
       count,
       connected,
       jumpTemplateMetrics,
-      heightRestrictionEnabled,
-      heightClearance,
+      objectClearanceEnabled,
+      objectClearanceRadius,
+      objectClearanceHeight,
     });
     if (!validation.valid) {
       throw new Error(validation.error);
@@ -55,8 +57,9 @@ export class ParticleField extends BaseShape {
     if (connected) {
       this.generateConnectedChain(centerPoint, width, depth, height, count, jumpTemplateMetrics, {
         randomItemRotation,
-        heightRestrictionEnabled,
-        heightClearance,
+        objectClearanceEnabled,
+        objectClearanceRadius,
+        objectClearanceHeight,
       });
       return;
     }
@@ -74,21 +77,24 @@ export class ParticleField extends BaseShape {
   generateConnectedChain(centerPoint, width, depth, height, count, jumpTemplateMetrics, options = {}) {
     const {
       randomItemRotation = false,
-      heightRestrictionEnabled = false,
-      heightClearance = 0,
+      objectClearanceEnabled = false,
+      objectClearanceRadius = 0,
+      objectClearanceHeight = 0,
     } = options;
     const bounds = this.createBounds(centerPoint, width, depth, height);
-    const heightRestriction = {
-      enabled: Boolean(heightRestrictionEnabled),
-      clearance: Number(heightClearance) || 0,
-      radius: Math.max(0.5, jumpTemplateMetrics.flatMax * 0.5),
-    };
-    const maxAttempts = count > 500 ? 12 : count > 150 ? 24 : 60;
+    const objectClearance = this.createObjectClearance({
+      enabled: objectClearanceEnabled,
+      radius: objectClearanceRadius,
+      height: objectClearanceHeight,
+    });
+    const maxAttempts = objectClearance.enabled
+      ? count > 500 ? 16 : count > 150 ? 36 : 90
+      : count > 500 ? 12 : count > 150 ? 24 : 60;
     let bestChain = [];
     let bestScore = -Infinity;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const chain = this.buildChainAttempt(bounds, count, jumpTemplateMetrics, heightRestriction);
+      const chain = this.buildChainAttempt(bounds, count, jumpTemplateMetrics, objectClearance);
       const score = this.scoreChain(chain, bounds, count);
 
       if (score > bestScore) {
@@ -111,13 +117,16 @@ export class ParticleField extends BaseShape {
     });
 
     if (bestChain.length < count) {
-      this.generationWarning = `Generated ${bestChain.length} of ${count} points. The jump template limits and box size prevented more connected points.`;
+      const limits = objectClearance.enabled
+        ? 'jump template, box size, and object-clearance limits'
+        : 'jump template limits and box size';
+      this.generationWarning = `Generated ${bestChain.length} of ${count} points. The ${limits} prevented more connected points.`;
     } else if (!this.isInTopBand(bestChain[bestChain.length - 1], bounds)) {
       this.generationWarning = `Generated ${count} points, but the final point did not reach the top band of the box.`;
     }
   }
 
-  buildChainAttempt(bounds, count, jumpTemplateMetrics, heightRestriction) {
+  buildChainAttempt(bounds, count, jumpTemplateMetrics, objectClearance) {
     const start = new THREE.Vector3(
       bounds.center.x,
       bounds.minY,
@@ -127,7 +136,7 @@ export class ParticleField extends BaseShape {
 
     for (let index = 1; index < count; index++) {
       const previous = chain[chain.length - 1];
-      const next = this.chooseNextConnectedPoint(previous, chain, bounds, jumpTemplateMetrics, heightRestriction, index, count);
+      const next = this.chooseNextConnectedPoint(previous, chain, bounds, jumpTemplateMetrics, objectClearance, index, count);
 
       if (!next) {
         break;
@@ -139,8 +148,8 @@ export class ParticleField extends BaseShape {
     return chain;
   }
 
-  chooseNextConnectedPoint(previous, chain, bounds, jumpTemplateMetrics, heightRestriction, index, count) {
-    const candidateCount = 72;
+  chooseNextConnectedPoint(previous, chain, bounds, jumpTemplateMetrics, objectClearance, index, count) {
+    const candidateCount = objectClearance.enabled ? 120 : 72;
     const targetProgress = count <= 1 ? 1 : index / (count - 1);
     const targetY = bounds.minY + bounds.height * targetProgress;
     const coverageTarget = this.createCoverageTarget(bounds, index);
@@ -153,7 +162,7 @@ export class ParticleField extends BaseShape {
         continue;
       }
 
-      if (this.violatesHeightRestriction(previous, candidate, chain, heightRestriction)) {
+      if (this.violatesObjectClearance(previous, candidate, chain, objectClearance)) {
         continue;
       }
 
@@ -275,55 +284,102 @@ export class ParticleField extends BaseShape {
     return Math.min(nearest, 0.35);
   }
 
-  violatesHeightRestriction(previous, candidate, chain, heightRestriction) {
-    if (!heightRestriction.enabled || heightRestriction.clearance <= 0) {
+  createObjectClearance({ enabled, radius, height }) {
+    const objectRadius = Number(radius) || 0;
+    const objectHeight = Number(height) || 0;
+
+    return {
+      enabled: Boolean(enabled) && objectRadius > 0 && objectHeight > 0,
+      radius: objectRadius,
+      height: objectHeight,
+      epsilon: 0.0001,
+    };
+  }
+
+  violatesObjectClearance(previous, candidate, chain, objectClearance) {
+    if (!objectClearance.enabled) {
       return false;
     }
 
-    return chain.some((point) => {
-      if (this.pointBlocksCandidate(point, candidate, heightRestriction)) {
+    return (
+      this.newSegmentHitsExistingObject(previous, candidate, chain, objectClearance) ||
+      this.candidateObjectBlocksExistingJump(candidate, chain, objectClearance)
+    );
+  }
+
+  newSegmentHitsExistingObject(start, end, chain, objectClearance) {
+    const startIndex = chain.length - 1;
+    return chain.some((point, index) => (
+      index !== startIndex &&
+      this.segmentIntersectsObjectVolume(start, end, point, objectClearance)
+    ));
+  }
+
+  candidateObjectBlocksExistingJump(candidate, chain, objectClearance) {
+    for (let index = 1; index < chain.length; index++) {
+      if (this.segmentIntersectsObjectVolume(chain[index - 1], chain[index], candidate, objectClearance)) {
         return true;
       }
+    }
 
-      return this.pointBlocksSegment(point, previous, candidate, heightRestriction);
-    });
+    return false;
   }
 
-  pointBlocksCandidate(existingPoint, candidate, heightRestriction) {
-    const verticalGap = Math.abs(candidate.y - existingPoint.y);
-    if (verticalGap <= 0.0001 || verticalGap > heightRestriction.clearance) {
+  segmentIntersectsObjectVolume(start, end, objectPoint, objectClearance) {
+    const { radius, height, epsilon } = objectClearance;
+    if (radius <= 0 || height <= 0) {
       return false;
     }
 
-    const horizontalGap = Math.hypot(candidate.x - existingPoint.x, candidate.z - existingPoint.z);
-    return horizontalGap <= heightRestriction.radius;
+    const bottomY = objectPoint.y - height;
+    const topY = objectPoint.y - epsilon;
+    if (bottomY > topY) {
+      return false;
+    }
+
+    let minT = 0;
+    let maxT = 1;
+    const dy = end.y - start.y;
+
+    if (Math.abs(dy) <= epsilon) {
+      if (start.y < bottomY - epsilon || start.y > topY) {
+        return false;
+      }
+    } else {
+      const bottomT = (bottomY - start.y) / dy;
+      const topT = (topY - start.y) / dy;
+      minT = Math.max(minT, Math.min(bottomT, topT));
+      maxT = Math.min(maxT, Math.max(bottomT, topT));
+
+      if (minT > maxT) {
+        return false;
+      }
+    }
+
+    return this.segmentIntervalHitsObjectRadius(start, end, objectPoint, radius, minT, maxT, epsilon);
   }
 
-  pointBlocksSegment(existingPoint, start, end, heightRestriction) {
-    const horizontalLengthSquared =
-      (end.x - start.x) ** 2 +
-      (end.z - start.z) ** 2;
+  segmentIntervalHitsObjectRadius(start, end, objectPoint, radius, minT, maxT, epsilon) {
+    const dx = end.x - start.x;
+    const dz = end.z - start.z;
+    const lengthSquared = dx * dx + dz * dz;
+    let closestT = minT;
 
-    if (horizontalLengthSquared <= 0.0001) {
-      return false;
+    if (lengthSquared > epsilon) {
+      const projectedT = (
+        (objectPoint.x - start.x) * dx +
+        (objectPoint.z - start.z) * dz
+      ) / lengthSquared;
+      closestT = this.clamp(projectedT, minT, maxT);
     }
 
-    const projection = (
-      (existingPoint.x - start.x) * (end.x - start.x) +
-      (existingPoint.z - start.z) * (end.z - start.z)
-    ) / horizontalLengthSquared;
-    const t = this.clamp(projection, 0, 1);
-    const closestX = start.x + (end.x - start.x) * t;
-    const closestZ = start.z + (end.z - start.z) * t;
-    const horizontalGap = Math.hypot(existingPoint.x - closestX, existingPoint.z - closestZ);
+    const closestX = start.x + dx * closestT;
+    const closestZ = start.z + dz * closestT;
+    const distanceSquared =
+      (objectPoint.x - closestX) ** 2 +
+      (objectPoint.z - closestZ) ** 2;
 
-    if (horizontalGap > heightRestriction.radius) {
-      return false;
-    }
-
-    const segmentY = start.y + (end.y - start.y) * t;
-    const verticalGap = segmentY - existingPoint.y;
-    return verticalGap > 0.0001 && verticalGap <= heightRestriction.clearance;
+    return distanceSquared <= radius * radius + epsilon;
   }
 
   addParticlePoint(position, randomItemRotation) {
@@ -416,8 +472,9 @@ export class ParticleField extends BaseShape {
       count,
       connected,
       jumpTemplateMetrics,
-      heightRestrictionEnabled,
-      heightClearance,
+      objectClearanceEnabled,
+      objectClearanceRadius,
+      objectClearanceHeight,
     } = params;
 
     if (width < 0 || width > 500) {
@@ -457,8 +514,14 @@ export class ParticleField extends BaseShape {
         return { valid: false, error: 'Connected chains need box X size or depth greater than 0' };
       }
 
-      if (heightRestrictionEnabled && (!Number.isFinite(heightClearance) || heightClearance < 0 || heightClearance > 500)) {
-        return { valid: false, error: 'Height restriction clearance must be between 0 and 500' };
+      if (objectClearanceEnabled) {
+        if (!Number.isFinite(objectClearanceRadius) || objectClearanceRadius <= 0 || objectClearanceRadius > 500) {
+          return { valid: false, error: 'Object radius must be greater than 0 and no more than 500' };
+        }
+
+        if (!Number.isFinite(objectClearanceHeight) || objectClearanceHeight <= 0 || objectClearanceHeight > 500) {
+          return { valid: false, error: 'Object height must be greater than 0 and no more than 500' };
+        }
       }
     }
 

@@ -224,21 +224,25 @@ export class ShapeControllers {
       const count = Number(document.getElementById("particleFieldCount").value);
       const connected = Boolean(document.getElementById("particleFieldConnected")?.checked);
       const randomItemRotation = Boolean(document.getElementById("particleFieldRandomRotation")?.checked);
-      const heightRestrictionEnabled = Boolean(document.getElementById("particleFieldHeightRestriction")?.checked);
-      const heightClearance = parseFloat(document.getElementById("particleFieldHeightClearance")?.value || "0");
+      const objectClearanceEnabled = Boolean(document.getElementById("particleFieldObjectClearance")?.checked);
+      const objectClearanceRadius = parseFloat(document.getElementById("particleFieldObjectRadius")?.value || "0");
+      const objectClearanceHeight = parseFloat(document.getElementById("particleFieldObjectHeight")?.value || "0");
       const jumpTemplateMetrics = this.fileHandlers ? this.fileHandlers.particleJumpTemplateMetrics : null;
 
       validatePoint(centerPoint, "Center Point");
       validateRange(width, 0, 500, "Box X size");
       validateRange(depth, 0, 500, "Box depth");
       validateRange(height, 0, 500, "Box height");
-      validateRange(heightClearance, 0, 500, "Height restriction clearance");
       if (width === 0 && depth === 0 && height === 0) {
         throw new Error("At least one box dimension must be greater than 0.");
       }
       validateRange(count, 1, 2000, "Items");
       if (!Number.isInteger(count)) {
         throw new Error("Items must be a whole number.");
+      }
+      if (connected && objectClearanceEnabled) {
+        validateRange(objectClearanceRadius, 0.0001, 500, "Object radius");
+        validateRange(objectClearanceHeight, 0.0001, 500, "Object height");
       }
 
       if (connected && !jumpTemplateMetrics) {
@@ -249,15 +253,17 @@ export class ShapeControllers {
         connected,
         jumpTemplateMetrics,
         randomItemRotation,
-        heightRestrictionEnabled,
-        heightClearance,
+        objectClearanceEnabled,
+        objectClearanceRadius,
+        objectClearanceHeight,
       });
 
       const warning = this.wheel.particleFieldShape?.generationWarning || '';
       this.updateCount('ParticleField', this.wheel.allPoints.length, warning ? `(${warning})` : '');
       return true;
     } catch (error) {
-      alert(`Particle Field Generation Error: ${error.message}`);
+      this.updateError('ParticleField', `Particle Field Generation Error: ${error.message}`);
+      console.error("Particle Field Generation Error:", error);
       return false;
     }
   }
@@ -547,6 +553,17 @@ export class ShapeControllers {
       element.textContent = message;
       element.style.fontWeight = 'bold';
       element.style.color = '#2196F3';
+      element.style.marginTop = '10px';
+    }
+  }
+
+  updateError(shapeType, message) {
+    const elementId = `generated${shapeType}Count`;
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = message;
+      element.style.fontWeight = 'bold';
+      element.style.color = '#f44336';
       element.style.marginTop = '10px';
     }
   }
